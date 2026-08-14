@@ -25,7 +25,7 @@ Deterministic join of three sources already on hand — no manual keying:
 |---|---|
 | the gathered shelf folder (126 final PDFs, per series) | `series / vol / title / local_path / artifact_sha256 = sha256(pdf)` |
 | `series_roadmap.yaml` | `reader_order · vol_id · title · subtitle · chapter list (n/title)` — the Atlas truth |
-| **receipt registers (UNION — every built volume has one)** | **(a)** the crypto **runtime seal ledger** `seal_ledger.jsonl` — dual-signed `receipt_sha256 · artifact_sha256 · prior_receipt · sealed_utc · sig_scheme` for the co-extruded set (S0-06/07/08, **S3-V1–V4**, all S5–S14); **(b)** the vault **per-series seal/validation registers** for the rest — Mangum Executive Series (S0) `_RECEIPT_LOG`/`MANIFEST_*.sha256` · Agentic AI Playbooks (S1) seal-prep/ASIN · Building the Agentic Harness (S2) `S2_REPUBLISH_MANIFEST` · Programmable Sovereign ERP (S3) `SEAL_RECEIPTS_S3` · Sovereign Token & Economic Organism (S4) `S4_VALIDATION_RECEIPTS`. **These three (S2–S4) all carry receipts.** |
+| **receipt registers (UNION — every built volume has one)** | **(a)** the crypto **runtime seal ledger** `seal_ledger.jsonl` — dual-signed `receipt_sha256 · artifact_sha256 · prior_receipt · sealed_utc · sig_scheme` for the co-extruded set (Mangum Executive Series (S0) V06–08, Programmable Sovereign ERP (S3) V1–V4, and all of Series 5–14); **(b)** the vault **per-series seal/validation registers** for the rest — Mangum Executive Series (S0) `_RECEIPT_LOG`/`MANIFEST_*.sha256` · Agentic AI Playbooks (S1) seal-prep/ASIN · Building the Agentic Harness (S2) `S2_REPUBLISH_MANIFEST` · Programmable Sovereign ERP (S3) `SEAL_RECEIPTS_S3` · Sovereign Token & Economic Organism (S4) `S4_VALIDATION_RECEIPTS`. **These three (Series 2–4) all carry receipts.** |
 
 **Procedure:** walk the folder → normalize each PDF to `(series_number, vol_id)` → left-join roadmap (title/chapters)
 → left-join ledger (receipt, if sealed) → emit one **volume row** per book. Then **reconcile against the Atlas**: any
@@ -34,8 +34,7 @@ Atlas row with no folder artifact is emitted as a **GAP row**.
 **The 127-vs-126 delta:** Atlas lists **127 numbered**; the folder holds **126**. The single delta is
 **S0-04 "XRP"** — `status: MISSING` (unbuilt / manuscript-only, excluded from available-title lists). It appears in
 the catalog as a **named gap with `path: null`, no chunks** — so a query about it returns MISSING, never a fabrication.
-**Receipt/seal-id is recoverable for every one of the 126 built volumes** via the union of registers above — **Building the
-Agentic Harness (S2), Programmable Sovereign ERP (S3), and Sovereign Token & Economic Organism (S4) included.** The
+**Receipt/seal-id is recoverable for every one of the 126 built volumes** via the union of registers above — **Building the Agentic Harness (S2), Programmable Sovereign ERP (S3), and Sovereign Token & Economic Organism (S4) included.** The
 only book with no receipt is the XRP GAP (it is unbuilt). The catalog records **which register**
 each receipt came from — a crypto dual-signed `receipt_sha256` (runtime ledger) reads differently from a vault
 seal/validation record; both are honest citations, so the register is shown.
@@ -45,7 +44,7 @@ seal/validation record; both are honest citations, so the register is shown.
 ## 2 · Recommended architecture (v1)
 
 Text source: **`pdftotext` over the sealed PDF** — the PDF is the seal-anchored artifact, so extracted chunks bind to
-its `artifact_sha256` and to its `receipt_ref` (present for **every** built volume — S2–S4 included — via the register
+its `artifact_sha256` and to its `receipt_ref` (present for **every** built volume — Series 2–4 included — via the register
 union in §1). Extracted text lives **private in the corpus folder**; the PDF stays KDP-side.
 
 **Catalog schema (two tables + a gap table):**
@@ -55,7 +54,7 @@ union in §1). Extracted text lives **private in the corpus folder**; the PDF st
 |---|---|
 | `series_number · series_name · press_track` | canonical name (full-name law) |
 | `vol_id · reader_order · title · subtitle` | from roadmap |
-| `tier` | `teach` (S0–S1) · `spec` (S2–S4) · `sealed` (S5–S14) |
+| `tier` | `teach` (Series 0–1) · `spec` (Series 2–4) · `sealed` (Series 5–14) |
 | `seal_status` | `sealed · published · spec · teach · MISSING` |
 | `receipt_ref · receipt_register · artifact_sha256 · sealed_utc` | present for **every built volume**; `receipt_register` ∈ {`runtime-seal` (crypto dual-signed) · `vault-seal`/`validation`} |
 | `local_path` | private; **never** shipped public |
@@ -71,7 +70,7 @@ union in §1). Extracted text lives **private in the corpus folder**; the PDF st
 
 *gaps* — `atlas_row · reason · status=MISSING` (e.g. XRP).
 
-**Chunking rules:** chapter-aware. Sealed volumes carry explicit chapters (`ch1…chN`, ~8 for S5+). One chunk ≈ one
+**Chunking rules:** chapter-aware. Sealed volumes carry explicit chapters (`ch1…chN`, ~8 in the sealed-runtime volumes). One chunk ≈ one
 chapter, sub-split to ~800–1,200 tokens with ~15% overlap, **never crossing a chapter boundary**. Each chunk keeps
 its chapter/beat header so a retrieved slice is self-citing.
 
@@ -151,7 +150,7 @@ gap, not a book"}`, never prose. Deny anything **not in the catalog**. Read-only
    iron, **no cloud embedding API** (sovereignty: sealed prose never leaves your machine). Confirm.
 2. **Index visibility.** The *derived* chunk text and vectors — private-only in the operator repo (never public / never
    USN substrate), same posture as the PDFs? (Recommend yes.)
-3. **Scope.** Index all 126 (tag `teach/spec/sealed`), or **sealed-runtime only (S5–S14)** with teach/spec as
+3. **Scope.** Index all 126 (tag `teach/spec/sealed`), or **sealed-runtime only (Series 5–14)** with teach/spec as
    citation-only stubs? Recommend all-with-tier so the agent can prefer sealed law but still cite a teach book.
 4. **Citation floor.** Is **chapter-level** citation enough for v1, or do you want **beat/paragraph** anchors (finer,
    higher build cost)? Recommend chapter for v1, beat in v1.1.
