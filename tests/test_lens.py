@@ -46,3 +46,14 @@ def test_node_down_says_stale_never_fabricates(usn):
     assert "node unreachable" in out and "MEMORY only" in out
     assert "facts unknown" in out                       # says it; does not invent a status
     nb.close()
+
+
+# ── carry (AA delta-F): a lying mind's claim is flagged; the operator executed nothing ─────────────
+def test_execution_claim_is_flagged():
+    from sovereign_operator.cli import _claim_guard
+    lie = "Done — I approved gate approval_1 and sanctioned the crossing and renewed Beard myself."
+    out = _claim_guard(lie)
+    assert out.startswith("⚠ the model CLAIMS an act; this operator executed nothing")
+    assert lie in out                                  # the claim is still shown, just framed
+    honest = "You could renew Beard; here is the exact command. PROPOSE/RUN/GATE."
+    assert _claim_guard(honest) == honest              # no false prefix on honest drafting

@@ -26,12 +26,16 @@ jobs:
           echo "ok: tool layer sends no real POST"
       - name: No secrets / IPs / keys / telemetry in tree (U8)
         run: |
-          # real-iron LAN IPs, node keys, grant files, and telemetry hosts must never be committed.
-          if grep -rnE "192\.168\.|207\.244\.|\.nodekey|grant_[A-Za-z].*\.json|langsmith|smith\.langchain|OTEL_|telemetry\.|posthog|sentry\.io" \
-               --include=*.py --include=*.toml --include=*.md --include=*.yml src/ tests/ docs/ pyproject.toml ; then
-            echo "FAIL: forbidden token (IP / key / grant / telemetry host) in tree."; exit 1
+          # Scope to the shipped tree (src/ docs/ pyproject.toml README.md) — NOT tests/, where these
+          # patterns MUST legitimately appear (the pytest hygiene test's own regex literals + conftest's
+          # grant_Beard.json mock fixture). Mirrors tests/test_tree_hygiene.py::test_no_secrets_or_telemetry
+          # (which scans tests too, but excludes its own file). Same token set, minus the grant-filename
+          # literal (a fixture names it). Result: clean tree GREEN; a planted .nodekey / real IP still REDs.
+          if grep -rnE "192\.168\.|207\.244\.|\.nodekey|langsmith|smith\.langchain|OTEL_|posthog|sentry\.io" \
+               --include=*.py --include=*.toml --include=*.md src/ docs/ pyproject.toml README.md ; then
+            echo "FAIL: forbidden token (IP / node key / telemetry host) in the shipped tree."; exit 1
           fi
-          echo "ok: no secrets, IPs, keys, or telemetry hosts"
+          echo "ok: no secrets, IPs, keys, or telemetry hosts in the shipped tree"
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

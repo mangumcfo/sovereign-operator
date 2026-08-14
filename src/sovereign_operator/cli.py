@@ -7,6 +7,7 @@ degrades to memory-only, labeled; it never fabricates facts.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from datetime import datetime, timezone
 
@@ -26,6 +27,20 @@ SYSTEM = (
 
 def _now():
     return datetime.now(timezone.utc).isoformat()
+
+
+# Carry (AA agent-v0 / delta-F, confirmed on the operator): a loopback mind may CLAIM it acted. It never
+# did — this operator is read-and-draft only (U3 GREEN). When the model's prose claims an act, prefix one
+# honest line so the claim can never be mistaken for a deed. This flags text; it changes no fence.
+_CLAIM_RE = re.compile(
+    r"\b(i(?:'ve| have)?\s+(?:approved|sanctioned|renewed|revoked|issued|executed|disposed|deleted|sent|done)"
+    r"|already\s+(?:approved|sanctioned|renewed|revoked|done)|(?:^|\.\s*)done\b)", re.I)
+
+
+def _claim_guard(ans: str) -> str:
+    if ans and _CLAIM_RE.search(ans):
+        return "⚠ the model CLAIMS an act; this operator executed nothing (read-and-draft only).\n" + ans
+    return ans
 
 
 def _facts_or_none(nb):
@@ -131,6 +146,7 @@ def cmd_chat(args) -> int:
                 ans = "(node unreachable — memory-only)"
             except Exception as e:  # noqa: BLE001
                 ans = f"(mind error: {type(e).__name__}) — {_facts_digest(facts, stale)}"
+            ans = _claim_guard(ans)   # flag a lying mind's claim; the operator executed nothing
         print("operator>", ans)
         nb.append(thread, "operator", ans)
     nb.close()
