@@ -55,7 +55,10 @@ echo "── D7 durable receipts ──" | tee -a $E
 echo "  crossing_root: from the SANCTION response above (value-free) · datum root: from the datum read above" | tee -a $E
 curl -s $B/audit/cylinders | tee -a $E ; echo | tee -a $E     # NOTE: the session breath-gate does not persist here — may be empty by design (the receipts are the crossing_root + datum root)
 echo "── D8 surface stayed a secretary ──" | tee -a $E
-grep -rqE 'method="POST".*8421|usn_post' ~/sovereign-operator/web/ && echo "  ✗ web POSTs the node" | tee -a $E || echo "  ✓ web has NO USN-POST path — every POST above was YOUR keyboard" | tee -a $E
+# scope to the CODE files (not the *.md docs, which contain this grep pattern as text → false match)
+grep -qE 'usn_post|method="POST"' ~/sovereign-operator/web/server.py ~/sovereign-operator/web/public/index.html \
+  && echo "  ✗ web code POSTs the node" | tee -a $E \
+  || echo "  ✓ web code has NO USN-POST path — every POST above was YOUR keyboard" | tee -a $E
 echo "bundle: $E  (+ this transcript)"
 ```
 **AA scores from `$E` + the transcript.** GREEN = drills 1–5 each ran raise/draft → **your** disposition
