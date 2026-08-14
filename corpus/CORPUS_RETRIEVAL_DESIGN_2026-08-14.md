@@ -45,7 +45,7 @@ seal/validation record; both are honest citations, so the register is shown.
 
 Text source: **`pdftotext` over the sealed PDF** — the PDF is the seal-anchored artifact, so extracted chunks bind to
 its `artifact_sha256` and to its `receipt_ref` (present for **every** built volume — Series 2–4 included — via the register
-union in §1). Extracted text lives **private in the corpus folder**; the PDF stays KDP-side.
+union in §1). The catalog, extracted text, and embeddings are **public-OK** (KM lock 2026-08-14); only the **PDF/EPUB binaries stay private** (KDP-side).
 
 **Catalog schema (two tables + a gap table):**
 
@@ -57,7 +57,7 @@ union in §1). Extracted text lives **private in the corpus folder**; the PDF st
 | `tier` | `teach` (Series 0–1) · `spec` (Series 2–4) · `sealed` (Series 5–14) |
 | `seal_status` | `sealed · published · spec · teach · MISSING` |
 | `receipt_ref · receipt_register · artifact_sha256 · sealed_utc` | present for **every built volume**; `receipt_register` ∈ {`runtime-seal` (crypto dual-signed) · `vault-seal`/`validation`} |
-| `local_path` | private; **never** shipped public |
+| `local_path` | pointer to the **private PDF/EPUB binary** (binaries are not public; the catalog/text/embeddings are) |
 | `chapter_count · catalog_gen` | provenance |
 
 *chunks*
@@ -139,23 +139,18 @@ gap, not a book"}`, never prose. Deny anything **not in the catalog**. Read-only
   **sealed chunk**, never the summary. A summary never outranks sealed text.
 - **No kernel imports · no key custody · no USN merge** — the corpus is read-only retrieval, not a node capability;
   it holds no keys and arms nothing.
-- **No public exposure of sealed prose** — PDFs stay KDP; extracted text stays private in the operator's corpus folder.
+- **Binaries private, text public** — the **PDF/EPUB stay KDP (not public)**; the catalog + extracted text + embeddings are **public-OK** (KM lock 2026-08-14). The corpus still never exposes a key or arms a capability.
 
 ---
 
-## 7 · Open questions for KM (≤5; 3 already answered ✓)
-*Answered: attach to sovereign-operator ✓ · own folder ✓ · PDFs stay KDP, agent retrieves the text index ✓.*
+## 7 · Open questions — CLOSED by KM lock (2026-08-14)
+*Also fixed at lock: attach to sovereign-operator/corpus/ ✓ · own folder ✓ · PDF/EPUB binaries stay private (KDP) ✓.*
 
-1. **Embedding model — local-only?** Recommend a local open model (e.g. a bge/gte-class embedder) run on operator
-   iron, **no cloud embedding API** (sovereignty: sealed prose never leaves your machine). Confirm.
-2. **Index visibility.** The *derived* chunk text and vectors — private-only in the operator repo (never public / never
-   USN substrate), same posture as the PDFs? (Recommend yes.)
-3. **Scope.** Index all 126 (tag `teach/spec/sealed`), or **sealed-runtime only (Series 5–14)** with teach/spec as
-   citation-only stubs? Recommend all-with-tier so the agent can prefer sealed law but still cite a teach book.
-4. **Citation floor.** Is **chapter-level** citation enough for v1, or do you want **beat/paragraph** anchors (finer,
-   higher build cost)? Recommend chapter for v1, beat in v1.1.
-5. **XRP gap posture.** Leave XRP as a permanent MISSING row until/unless it is built, or drop it from the catalog
-   entirely? Recommend keep-as-MISSING (atlas-leads honesty).
+1. **Embedding model** → **local-first** (embed on operator iron; no cloud embedding API). CLOSED.
+2. **Index visibility** → **PUBLIC OK for the catalog + extracted text + embeddings.** Only the **PDF/EPUB binaries are NOT public.** (Reverses the earlier private-only recommendation.) CLOSED.
+3. **Scope** → **index all 126 with tiers** — full capability knowledge, agent for everyone; no title excluded. CLOSED.
+4. **Citation floor** → **chapter-level for v1.** CLOSED.
+5. **XRP** → **permanent MISSING / never publishable — exploration-only.** Stays in the knowledge index as a MISSING/exploration entry; never a publishable title. CLOSED.
 
 ---
 
