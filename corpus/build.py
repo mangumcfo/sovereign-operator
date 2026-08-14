@@ -167,8 +167,8 @@ def main() -> int:
             catalog.append(row)
             continue
         if "concept" in kinds:
-            row["seal_status"] = "concept"
-            catalog.append(row)  # designed-not-built: catalog row, no chunks
+            # PRIV/concept companion titles are PRIVATE — NOT in the public catalog (KM 2026-08-14).
+            # The registry keeps them; the public catalog carries only the 126 built + XRP MISSING.
             continue
 
         # find a text source (seed for S5–S14)

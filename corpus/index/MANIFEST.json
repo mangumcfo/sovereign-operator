@@ -14,19 +14,22 @@
     "where": "operator iron (server1), zero cloud"
   },
   "counts": {
-    "catalog_rows": 131,
+    "catalog_rows": 127,
     "volumes_text_indexed": 126,
     "chunks": 1568,
     "summaries": 712,
     "gaps_missing": 1
   },
   "shas": {
-    "catalog": "b88ca78fa203a8b85f43bde2a9aac3ab90b78b01e99639eac6ae9d57f9496845",
+    "catalog": "9a2f540c67ad81c3464ea9c40333f049b45559693bc2af7667b61b706836804d",
     "chunks": "50c91ed066b4afbed55f67a9e7a89a0955abf302958b82fc36b9d4fa8ed3b72a",
     "embeddings": "5d66f2575d66843f83fa61f83ffba76208453518921b020ca1324d07378d7fc3"
   },
   "text_sources": {
     "sealed_runtime_S5_S14": "press seed chN.yaml prose (chapter-addressable)",
     "foundational_S0_S4": "pdftotext over gathered shelf (artifact_sha256 bound); PDF binary NOT in tree"
+  },
+  "visibility": {
+    "public_catalog": "126 built + XRP MISSING; PRIV/concept rows are private (KM 2026-08-14), kept in the registry only"
   }
 }
