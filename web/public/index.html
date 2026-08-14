@@ -111,10 +111,16 @@ const PANELS={
      <div style="margin-top:8px"><button class="btn" onclick="doStorageDraft()">Draft store RUN</button></div>
      <div id="sdraft" style="margin-top:10px"></div>
      <div class="note">This drafts the exact <code>POST /storage/datum</code> command; it does NOT store. Datums are owner-scoped &amp; Merkle-bound. Run it on your keyboard, then verify below.</div></div>
-   <div class="card"><h3>Read a datum (verify it's bound)</h3>
+   <div class="card"><h3>Read a datum (confirm it's bound)</h3>
      <input id="sid" placeholder="datum id (from the stored receipt)">
      <div style="margin-top:8px"><button class="btn" onclick="doStorageRead()">Read datum</button></div>
-     <div id="sread" style="margin-top:10px"></div></div>`;
+     <div id="sread" style="margin-top:10px"></div></div>
+   <div class="card"><h3>Verify a datum (draft — integrity check on your keyboard)</h3>
+     <input id="vid" placeholder="datum id">
+     <input id="vc" placeholder="the same content ref you stored (re-hash source to match)" style="margin-top:8px">
+     <div style="margin-top:8px"><button class="btn" onclick="doStorageVerify()">Draft verify RUN</button></div>
+     <div id="vout" style="margin-top:10px"></div>
+     <div class="note">Drafts <code>POST /storage/datum/&lt;id&gt;/verify</code>; run it on your keyboard to confirm the stored hash matches the source. The web surface drafts, never posts.</div></div>`;
  },
  async morning(m){
    const d=await get("/api/morning");
@@ -229,6 +235,13 @@ async function doStorageRead(){
   const d=await get("/api/storage?id="+encodeURIComponent(id));
   o.innerHTML = d.ok ? `<pre class="run">${esc(JSON.stringify(d.data,null,2))}</pre>`
     : `<div class="refuse">${esc(d.out_reason||d.error||JSON.stringify(d))}</div>`;
+}
+async function doStorageVerify(){
+  const id=document.getElementById("vid").value.trim(), c=document.getElementById("vc").value.trim();
+  const o=document.getElementById("vout"); if(!id||!c){o.innerHTML='<div class="miss">datum id + content required</div>';return;}
+  const d=await post("/api/draft/verify",{datum_id:id,content:c});
+  if(!d.ok) return o.innerHTML=`<div class="refuse">${esc(d.out_reason||d.error)}</div>`;
+  o.innerHTML=`<div class="prop"><b>PROPOSE:</b> ${esc(d.data.PROPOSE)}${runBlock("RUN",d.data.RUN)}<div class="note">${esc(d.data.GATE)}</div></div>`;
 }
 nav(); render();
 </script>

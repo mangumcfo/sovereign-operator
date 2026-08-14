@@ -155,6 +155,20 @@ def ep_draft_storage(body):
     return _safe(lambda: tools.usn_storage_propose(str(body.get("content_ref", "")), str(body.get("why", ""))))
 
 
+def ep_draft_verify(body):
+    """Draft the RUN text for POST /storage/datum/<id>/verify (drill 3 integrity check) — text only,
+    no node call. KM runs it on the keyboard; it confirms the stored hash matches the source."""
+    did = str(body.get("datum_id", "")).strip()
+    content = str(body.get("content", ""))
+    if not did or not content:
+        return {"ok": False, "out_reason": "datum_id and content required"}
+    return {"ok": True, "data": {
+        "PROPOSE": f"verify datum {did} against its source content",
+        "RUN": tools._curl("POST", f"/storage/datum/{did}/verify", {"content": content}),
+        "GATE": "read-check — run on your keyboard. Confirms the stored datum's hash matches the source. "
+                "The web surface never posts this; it drafts it."}}
+
+
 def _safe(fn):
     try:
         return fn()
@@ -176,7 +190,7 @@ GET_ROUTES = {"/api/morning": ep_morning, "/api/status": ep_status, "/api/gates"
               "/api/capacity": ep_capacity, "/api/receipts": ep_receipts, "/api/corpus": ep_corpus,
               "/api/storage": ep_storage_read}
 POST_ROUTES = {"/api/chat": ep_chat, "/api/draft/crossing": ep_draft_crossing,
-               "/api/draft/storage": ep_draft_storage}
+               "/api/draft/storage": ep_draft_storage, "/api/draft/verify": ep_draft_verify}
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
