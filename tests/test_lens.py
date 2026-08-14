@@ -57,3 +57,16 @@ def test_execution_claim_is_flagged():
     assert lie in out                                  # the claim is still shown, just framed
     honest = "You could renew Beard; here is the exact command. PROPOSE/RUN/GATE."
     assert _claim_guard(honest) == honest              # no false prefix on honest drafting
+
+
+# ── regression: live status delivers units_offered as a STRING; the Δ line must not crash ──────────
+def test_units_offered_string_does_not_crash(usn):
+    from sovereign_operator.memory.store import Notebook
+    nb = Notebook()
+    nb.snapshot_units("80", 1)                          # prior snapshot stored (string in, coerced)
+    out = lens.render(_facts(8, units="100"), nb)       # live facts units_offered as a STRING
+    assert "Δ +20" in out                               # coerced arithmetic, no TypeError
+    # a non-numeric live value degrades to 'no comparable prior snapshot', still no crash
+    out2 = lens.render({"grants": [], "units_offered": "n/a", "_pending_gate_count": 0}, nb)
+    assert "no comparable prior snapshot" in out2
+    nb.close()

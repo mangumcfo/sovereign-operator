@@ -9,6 +9,15 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 
+def _as_int(x):
+    """Coerce to int, or None. The node's status doc may deliver units_offered as a string (registry
+    payload) — never subtract raw across types; a non-numeric value degrades to 'no delta', not a crash."""
+    try:
+        return int(x)
+    except (TypeError, ValueError):
+        return None
+
+
 def days_to_expiry(expires_iso: str | None):
     """Whole days from now (UTC) until an ISO expiry. None if unparseable. Arithmetic on a fact."""
     if not expires_iso:
@@ -53,11 +62,13 @@ def render(facts: dict | None, notebook, *, stale_note: str | None = None) -> st
     lines += grant_lines(facts)
     snap = notebook.last_snapshot()
     now_units = facts.get("units_offered")
-    if snap and snap.get("units_offered") is not None and now_units is not None:
-        delta = now_units - snap["units_offered"]
-        lines.append(f"           units_offered now {now_units} (facts) · Δ {delta:+d} since {snap['ts']} (facts vs notebook snapshot)")
+    ni = _as_int(now_units)
+    si = _as_int(snap.get("units_offered")) if snap else None
+    if ni is not None and si is not None:
+        delta = ni - si
+        lines.append(f"           units_offered now {ni} (facts) · Δ {delta:+d} since {snap['ts']} (facts vs notebook snapshot)")
     else:
-        lines.append(f"           units_offered now {now_units} (facts) · no prior snapshot (memory)")
+        lines.append(f"           units_offered now {now_units} (facts) · no comparable prior snapshot (memory)")
 
     # attention — pending gates (facts) vs promised-but-undisposed (memory)
     pend = facts.get("_pending_gate_count")
