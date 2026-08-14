@@ -106,6 +106,14 @@ def ep_receipts(_q):
     return {"ok": True, "inference": inf.get("data"), "audit": aud.get("data")}
 
 
+def ep_storage_read(q):
+    """Read an owner-scoped datum by id (GET /storage/datum/<id>) — drill 3 verification."""
+    did = (q.get("id") or [""])[0].strip()
+    if not did:
+        return {"ok": False, "out_reason": "datum id required"}
+    return _safe(lambda: tools.usn_storage_read(did))
+
+
 def ep_corpus(q):
     query = (q.get("q") or [""])[0].strip()
     if not query:
@@ -165,7 +173,8 @@ class _Nb:
 
 
 GET_ROUTES = {"/api/morning": ep_morning, "/api/status": ep_status, "/api/gates": ep_gates,
-              "/api/capacity": ep_capacity, "/api/receipts": ep_receipts, "/api/corpus": ep_corpus}
+              "/api/capacity": ep_capacity, "/api/receipts": ep_receipts, "/api/corpus": ep_corpus,
+              "/api/storage": ep_storage_read}
 POST_ROUTES = {"/api/chat": ep_chat, "/api/draft/crossing": ep_draft_crossing,
                "/api/draft/storage": ep_draft_storage}
 

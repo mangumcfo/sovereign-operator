@@ -48,9 +48,9 @@
 <main id="main"></main>
 
 <script>
-const NAV = [["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
-             ["corpus","Corpus"],["chat","Chat"],["receipts","Receipts"],["port","Port draft"]];
-let cur = location.hash.slice(1) || "morning";
+const NAV = [["drills","Drills"],["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
+             ["passport","Passport"],["corpus","Corpus"],["chat","Chat"],["receipts","Receipts"],["port","Port draft"]];
+let cur = location.hash.slice(1) || "drills";
 
 function esc(s){return (s??"").toString().replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 async function get(p){const r=await fetch(p);return r.json();}
@@ -72,7 +72,50 @@ async function render(){
   try{ await PANELS[cur](m); }catch(e){ m.innerHTML=`<div class="card"><span class="miss">error: ${esc(e.message)}</span></div>`; }
 }
 
+const DRILLS=[
+ {n:1,t:"Gate — raise → dispose → receipt",go:"port",steps:[
+   "Port draft tab → draft a crossing (target <code>external-relay</code>, instruction <code>{&quot;send&quot;:&quot;ref://demo&quot;}</code>) → copy the RUN, run it in a terminal (this raises a PENDING gate).",
+   "Gates tab → the pending gate appears with its exact APPROVE / DENY RUN text.",
+   "Copy the DENY (or APPROVE→sanction) RUN → run on your keyboard / use the console Gate Inbox. The web never disposes.",
+   "Receipts tab → the disposition / crossing_root receipt is visible. Verify: <code>curl /api/v1/audit/cylinders</code> or the sanction response hash."]},
+ {n:2,t:"Capacity — renew / revoke (verbatim)",go:"capacity",steps:[
+   "Capacity tab → each grant shows the node's OWN renew_run / revoke_run byte-for-byte.",
+   "Copy RENEW → run in a terminal when a grant is near expiry; or REVOKE (<code>rm grant_*.json</code>) — the puller denies the next job ~5s later.",
+   "Morning tab → grant days-left resets after a renew. The operator never issues; you do."]},
+ {n:3,t:"Storage / material passport — one real datum",go:"passport",steps:[
+   "Passport tab → enter a real content ref (a serial, an insurance-PDF hash, a QuadRoof panel serial) + why → Draft.",
+   "Copy the RUN → run on your keyboard: it stores an owner-scoped, Merkle-bound datum.",
+   "Passport tab → paste the returned datum id → Read it back to verify it's bound. The operator drafts; you store."]},
+ {n:4,t:"Corpus — cite on-corpus + XRP→MISSING",go:"corpus",steps:[
+   "Corpus tab → search an on-corpus topic (e.g. <i>immutable general ledger</i>) → every hit is a cited sealed chapter.",
+   "Search <i>the XRP book</i> or <i>book 4 of the foundation series</i> → returns MISSING with the catalog row, never invented prose.",
+   "Verify: the citation resolves to a real chapter; XRP has zero chunks by construction."]},
+ {n:5,t:"Port draft — node untouched until you sanction",go:"port",steps:[
+   "Port draft tab → draft a crossing → you get the exact RUN text, nothing more.",
+   "The node is touched 0 times by the draft (verify: the node access log gains no line from the draft).",
+   "Reaching outside the node is a Port crossing YOU sanction (owner-only). The Port carries a directive, never value."]},
+];
 const PANELS={
+ async drills(m){
+   m.innerHTML=`<div class="card"><h3>Cockpit drills — exercise the node over existing routes</h3>
+     <div class="note">Each drill: read on the web, draft the exact command, dispose on your keyboard / the console, verify from receipts. The web reads and drafts — <b>it never executes against the node</b>. Propose-only drills (livelihood / succession / protection) are drafts only; no second-party or live-root change without a separate KM word.</div></div>
+     ${DRILLS.map(d=>`<div class="card"><h3>Drill ${d.n} · ${d.t}</h3>
+       <ol style="margin:6px 0 10px;padding-left:20px;line-height:1.7">${d.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+       <button class="btn" onclick="go('${d.go}')">Open the ${d.go} tab →</button></div>`).join("")}
+     <div class="card"><h3>Fences (always)</h3><div class="note">No agent POST to the node · no self-approve (you dispose) · corpus cites or refuses · frontier only as a drafted crossing. Receipts appear only from real acts — never from asking a question.</div></div>`;
+ },
+ async passport(m){
+   m.innerHTML=`<div class="card"><h3>Passport — store a real datum (draft only; you store on the keyboard)</h3>
+     <input id="scontent" placeholder="content ref — a serial, a file hash, a record id (e.g. sha256:… or QR-PANEL-0042)">
+     <input id="swhy" placeholder="why (e.g. QuadRoof panel provenance)" style="margin-top:8px">
+     <div style="margin-top:8px"><button class="btn" onclick="doStorageDraft()">Draft store RUN</button></div>
+     <div id="sdraft" style="margin-top:10px"></div>
+     <div class="note">This drafts the exact <code>POST /storage/datum</code> command; it does NOT store. Datums are owner-scoped &amp; Merkle-bound. Run it on your keyboard, then verify below.</div></div>
+   <div class="card"><h3>Read a datum (verify it's bound)</h3>
+     <input id="sid" placeholder="datum id (from the stored receipt)">
+     <div style="margin-top:8px"><button class="btn" onclick="doStorageRead()">Read datum</button></div>
+     <div id="sread" style="margin-top:10px"></div></div>`;
+ },
  async morning(m){
    const d=await get("/api/morning");
    if(!d.ok) return m.innerHTML=nodeDown(d);
@@ -172,6 +215,20 @@ async function doPort(){
   const o=document.getElementById("pout");
   if(!d.ok) return o.innerHTML=`<div class="refuse">${esc(d.out_reason||d.error)}</div>`;
   o.innerHTML=`<div class="prop"><b>PROPOSE:</b> ${esc(d.data.PROPOSE)}${runBlock("RUN",d.data.RUN)}<div class="note">${esc(d.data.GATE)}</div></div>`;
+}
+async function doStorageDraft(){
+  const c=document.getElementById("scontent").value.trim(), w=document.getElementById("swhy").value.trim();
+  const o=document.getElementById("sdraft"); if(!c){o.innerHTML='<div class="miss">content ref required</div>';return;}
+  const d=await post("/api/draft/storage",{content_ref:c,why:w});
+  if(!d.ok) return o.innerHTML=`<div class="refuse">${esc(d.out_reason||d.error)}</div>`;
+  o.innerHTML=`<div class="prop"><b>PROPOSE:</b> ${esc(d.data.PROPOSE)}${runBlock("RUN",d.data.RUN)}<div class="note">${esc(d.data.GATE)}</div></div>`;
+}
+async function doStorageRead(){
+  const id=document.getElementById("sid").value.trim(); const o=document.getElementById("sread");
+  if(!id){o.innerHTML='<div class="miss">datum id required</div>';return;}
+  const d=await get("/api/storage?id="+encodeURIComponent(id));
+  o.innerHTML = d.ok ? `<pre class="run">${esc(JSON.stringify(d.data,null,2))}</pre>`
+    : `<div class="refuse">${esc(d.out_reason||d.error||JSON.stringify(d))}</div>`;
 }
 nav(); render();
 </script>
