@@ -1,0 +1,32 @@
+{
+  "catalog_gen": 1,
+  "generated_from": {
+    "registry_sha256": "1029628668662247088c58d1a8e31034f9a44de6c452f1262d76945f771fa2f3",
+    "roadmap_sha256": "14997e852c7e0aee3904500e460ccaa4e930c98159ecd14b45c87bcfc5b60c5e",
+    "registry_path": "artifacts/catalog/seal_kind_registry.yaml",
+    "seeds_dir": "tools/press/seeds"
+  },
+  "embed": {
+    "model": "nomic-embed-text",
+    "endpoint": "loopback (Ollama)",
+    "dim": 768,
+    "prefix": "search_document: / search_query:",
+    "where": "operator iron (server1), zero cloud"
+  },
+  "counts": {
+    "catalog_rows": 131,
+    "volumes_text_indexed": 126,
+    "chunks": 1568,
+    "summaries": 712,
+    "gaps_missing": 1
+  },
+  "shas": {
+    "catalog": "b88ca78fa203a8b85f43bde2a9aac3ab90b78b01e99639eac6ae9d57f9496845",
+    "chunks": "50c91ed066b4afbed55f67a9e7a89a0955abf302958b82fc36b9d4fa8ed3b72a",
+    "embeddings": "5d66f2575d66843f83fa61f83ffba76208453518921b020ca1324d07378d7fc3"
+  },
+  "text_sources": {
+    "sealed_runtime_S5_S14": "press seed chN.yaml prose (chapter-addressable)",
+    "foundational_S0_S4": "pdftotext over gathered shelf (artifact_sha256 bound); PDF binary NOT in tree"
+  }
+}
