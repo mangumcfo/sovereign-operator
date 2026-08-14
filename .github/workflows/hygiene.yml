@@ -1,0 +1,42 @@
+name: tree-hygiene + fences
+on: [push, pull_request]
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No kernel imports (U5 — HTTP-only boundary)
+        run: |
+          # match import STATEMENTS only — a 'sovereign_agent...' string in test data is not an import.
+          if grep -rnE "^[[:space:]]*(from|import)[[:space:]]+sovereign_agent" src/ tests/ ; then
+            echo "FAIL: operator must not import the USN kernel — it composes over HTTP only."; exit 1
+          fi
+          echo "ok: zero kernel imports"
+      - name: No real POST from the tool layer (U2/U3 — read-and-draft only)
+        run: |
+          # tools.py may contain 'POST' ONLY inside _curl(...) draft strings (text KM pastes). It must
+          # construct no real request: no method="POST", no urlopen, no model call. And no usn_post exists.
+          if grep -nE 'method="POST"|urlopen|mind_complete' src/sovereign_operator/tools.py ; then
+            echo "FAIL: tools.py constructs a real request — v1 is read-and-draft; USN sees GETs only."; exit 1
+          fi
+          if grep -rn "def usn_post" src/ ; then
+            echo "FAIL: a usn_post() must never exist."; exit 1
+          fi
+          echo "ok: tool layer sends no real POST"
+      - name: No secrets / IPs / keys / telemetry in tree (U8)
+        run: |
+          # real-iron LAN IPs, node keys, grant files, and telemetry hosts must never be committed.
+          if grep -rnE "192\.168\.|207\.244\.|\.nodekey|grant_[A-Za-z].*\.json|langsmith|smith\.langchain|OTEL_|telemetry\.|posthog|sentry\.io" \
+               --include=*.py --include=*.toml --include=*.md --include=*.yml src/ tests/ docs/ pyproject.toml ; then
+            echo "FAIL: forbidden token (IP / key / grant / telemetry host) in tree."; exit 1
+          fi
+          echo "ok: no secrets, IPs, keys, or telemetry hosts"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Tests (stdlib + pytest; hermetic — fake USN, loopback only)
+        run: |
+          python -m pip install -e ".[test]"
+          python -m pytest -q

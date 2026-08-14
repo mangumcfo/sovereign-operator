@@ -1,0 +1,25 @@
+# --- personal / sovereign state — NEVER in the tree (spec §5, U8) ---
+.sovereign_operator/
+*.sqlite3
+exports/
+# keys, peer books, grants, checkpoints, node identity — none of these belong here
+*.nodekey.json
+*.token
+grant_*.json
+*peer_book*
+checkpoints/
+threads/
+# secrets / env / overlays
+.env
+.env.*
+personal/
+overlays/
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/

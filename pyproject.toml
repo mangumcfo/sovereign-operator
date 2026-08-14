@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sovereign-operator"
+version = "0.1.0"
+description = "A read-and-draft secretary for your Universal Sovereign Node — remembers, drafts, and fetches over loopback HTTP; holds no keys, no authority, no execution path."
+requires-python = ">=3.10"
+license = { text = "Constitutional Federation Sovereign License" }
+authors = [{ name = "Kenneth Mangum (KM-1176)" }]
+keywords = ["sovereign", "usn", "loopback", "operator", "human-in-the-loop"]
+# v1 is PURE STDLIB — zero third-party runtime dependencies (F4: loopback-runnable after clone).
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+operator = "sovereign_operator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sovereign_operator = ["py.typed"]

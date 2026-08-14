@@ -1,0 +1,161 @@
+Constitutional Federation Sovereign License
+Version 1.1, 2026 (v1.0 + the Constitutional Kernel, §3a)
+
+Copyright © 2026 Kenneth Mangum (KM-1176). All rights reserved.
+
+---
+
+PREAMBLE
+
+This work exists to strengthen personal sovereignty: the capacity of
+individuals, families, and free federations of nodes to own their tools,
+their records, and their futures. It is offered openly so that it may
+serve human flourishing and Lasting Generational Prosperity (LGP) —
+prosperity that compounds across generations because no one can take
+the foundation away.
+
+This license keeps that promise enforceable. You may use this work
+freely. What you may not do is capture it, enclose it, or strip out
+the sovereignty it was built to protect.
+
+---
+
+1. WHAT YOU MAY DO
+
+Subject to the conditions below, permission is granted, free of charge,
+to any person obtaining a copy of this work to:
+
+  a. READ and study the work, in whole or in part;
+  b. USE and run the work for any purpose, personal or commercial;
+  c. MODIFY the work and build upon it;
+  d. REDISTRIBUTE the work, in source or built form;
+  e. FORK the work and create derivative works.
+
+Forking is not merely tolerated — it is encouraged. A sovereign work
+survives by being replicated, adapted, and carried forward by many
+hands. If this project ever fails its own principles, forking it is
+the intended remedy.
+
+2. ATTRIBUTION
+
+All copies, substantial portions, forks, and derivative works must
+retain clear and visible attribution to the original author:
+
+    Kenneth Mangum (KM-1176)
+
+This includes: this copyright line, this license text, and — in any
+public-facing derivative — a plain statement that the work is derived
+from the Universal Sovereign Node by Kenneth Mangum (KM-1176).
+Attribution may not be buried, minimized, or removed.
+
+Do not use the author's name to endorse a derivative without written
+permission. State what your work is derived from; do not imply the
+original author built or approved it.
+
+3. SOVEREIGNTY PRESERVATION (the heart of this license)
+
+Every copy, fork, and derivative must preserve the sovereign character
+of the work. Concretely, a derivative MUST NOT:
+
+  a. remove, disable, or gate the ability of an operator to run the
+     work fully on hardware they control, without requiring accounts,
+     remote approval, telemetry, or services owned by the distributor;
+  b. lock operator data, records, or state into formats or systems the
+     operator cannot read, export, and verify with their own tools;
+  c. remove or hollow out the human approval gates (propose → approve
+     → execute) so that the work acts on an operator's behalf without
+     the operator's consent;
+  d. relicense the work or a derivative under terms that would permit
+     (a), (b), or (c).
+
+3a. THE CONSTITUTIONAL KERNEL (runtime invariants — license-conditioned)
+
+The permissions in Section 1 are conditioned on preserving four runtime
+invariants in any copy, fork, or derivative that executes. Together they
+are the Constitutional Kernel:
+
+  K1 — HUMAN PRIMACY. Every material action begins with a living human
+       decision and ends in human responsibility. The software proposes;
+       a person approves; only then may it execute — and where no human
+       gate is present, a material action MUST fail closed: refused and
+       recorded, never silently permitted. No derivative may remove,
+       bypass, delegate to another machine, or automate away the human
+       approval gate on material decisions, nor convert a refusal into
+       a default permission. The human is the origin point of decision
+       and the holder of its meaning; the software remains, always, an
+       instrument.
+  K2 — DEFAULT-DENY. Capabilities are denied unless explicitly granted.
+       A derivative may add grants; it may not invert the default.
+  K3 — AUDIT-IMMUTABLE. Actions of consequence append to a hash-chained,
+       replayable record the operator holds. A derivative may extend the
+       record; it may not make it silently mutable or optional.
+  K4 — CONSTITUTIONAL-VALIDATED EXTENSION. New capabilities enter through
+       validation against the operator's declared rules — never by
+       silent self-extension.
+
+A fork that strips a Kernel invariant at runtime is outside this license,
+regardless of what its source tree claims. Section 3's sovereignty
+protections and Section 4's anti-capture protections are read together
+with this section: the Kernel is HOW those protections stay true while
+the software runs.
+
+4. ANTI-CAPTURE AND ANTI-ENCLOSURE
+
+This work may not be used, incorporated, or redistributed as part of
+an effort to enclose it — that is, to convert this commons into a
+captive asset. In particular, the following are outside the grant of
+this license:
+
+  a. offering the work, or a derivative, as a closed hosted service
+     while denying users the source and the practical means to leave
+     with their data and run it themselves;
+  b. asserting patents, trademarks, digital-rights mechanisms, or
+     exclusivity agreements against the work or against others'
+     lawful use, forking, or distribution of it;
+  c. acquisition, embrace-and-extend, or bundling strategies by any
+     entity whose purpose or effect is to make the sovereign use of
+     this work impractical for individuals and small federations.
+
+An entity that engages in any of the above forfeits every permission
+granted by this license, automatically and immediately, for all copies
+and derivatives in its possession or control.
+
+5. SHARE-ALIKE OF SOVEREIGNTY
+
+Derivative works must be distributed under this license or under terms
+that preserve, with equal or greater strength, the protections in
+Sections 2, 3, and 4. You may add terms (warranty, support, pricing
+for your own services) so long as they do not weaken those protections.
+
+6. FEDERATION CLAUSE
+
+Nodes running this work or derivatives may federate freely. No party
+may charge rent, demand registration, or impose gatekeeping as a
+condition of federation protocol compatibility. The right to peer is
+part of the work.
+
+7. NO WARRANTY
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO FITNESS FOR A PARTICULAR PURPOSE
+AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE WORK OR ITS USE.
+YOU RUN A SOVEREIGN NODE; YOU ARE RESPONSIBLE FOR WHAT IT DOES.
+
+8. TERMINATION AND REVIVAL
+
+Violation of Sections 2–6 terminates your rights under this license
+automatically. Rights are revived if the violation is fully cured
+within 30 days of becoming aware of it, unless the violation was a
+capture or enclosure attempt under Section 4, in which case
+termination is permanent for the violating entity.
+
+9. INTERPRETATION
+
+Where this license is ambiguous, it is to be read in the direction of
+greater operator sovereignty, wider lawful replication, and stronger
+resistance to capture — never the reverse.
+
+---
+
+∞Δ∞ A tool you cannot leave with is a cage. This one opens from the inside. ∞Δ∞
