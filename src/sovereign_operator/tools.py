@@ -151,7 +151,8 @@ def usn_storage_propose(content_ref: str, why: str) -> dict:
     own notes here (Q2 lock: agent memory is wholly repo-side)."""
     return _ok({
         "PROPOSE": f"store a datum — {why}",
-        "RUN": _curl("POST", "/storage/datum", {"content": content_ref, "visibility": "owner"}),
+        # visibility must be 'private' (owner-scoped) or 'shared' — the node refuses 'owner' (STORAGE_REFUSED).
+        "RUN": _curl("POST", "/storage/datum", {"content": content_ref, "visibility": "private"}),
         "GATE": "KM's keyboard. The operator drafts this for KM's datums; it does not store its own notes "
                 "in the USN (memory stays in ~/.sovereign_operator/). NOT executed.",
     })
