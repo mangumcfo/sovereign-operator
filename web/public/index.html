@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator — Sovereign Node</title>
+<style>
+  :root{--bg:#0b0d10;--panel:#14171c;--line:#232833;--paper:#e8ebf0;--muted:#8a93a3;
+        --blue:#4a86ff;--green:#3fb950;--amber:#d9a441;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--paper);
+    font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);background:#0e1116}
+  header .glyph{color:var(--blue);font-weight:700}
+  header .sub{color:var(--muted);font-size:12px}
+  header .law{margin-left:auto;color:var(--muted);font-size:11px;font-family:var(--mono)}
+  nav{display:flex;gap:2px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  nav button{background:none;border:0;color:var(--muted);padding:7px 12px;border-radius:6px;cursor:pointer;font:inherit}
+  nav button:hover{background:#1b1f27;color:var(--paper)}
+  nav button.active{background:rgba(74,134,255,.16);color:var(--paper)}
+  main{padding:18px;max-width:960px;margin:0 auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+  .card h3{margin:0 0 10px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .kv{font-family:var(--mono);font-size:12.5px;line-height:1.9}
+  .kv .k{color:var(--muted)} .up{color:var(--green)} .down{color:var(--muted)} .warn{color:var(--amber)}
+  pre.run{background:#080a0d;border:1px solid var(--line);border-radius:5px;padding:9px 11px;overflow-x:auto;
+    font-family:var(--mono);font-size:12px;white-space:pre-wrap;color:#cdd6e4;margin:6px 0}
+  .btn{background:#1b1f27;border:1px solid var(--line);color:var(--paper);padding:5px 10px;border-radius:5px;cursor:pointer;font:inherit;font-size:12px}
+  .btn:hover{border-color:var(--blue)}
+  .prop{border-left:2px solid var(--line);padding:8px 12px;margin:8px 0}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:3px;font-family:var(--mono)}
+  .tag.chunk{background:rgba(63,185,80,.15);color:var(--green)} .tag.summary{background:rgba(217,164,65,.15);color:var(--amber)}
+  .cite{font-family:var(--mono);font-size:11.5px;color:var(--blue)}
+  input,textarea{width:100%;background:#0e1116;border:1px solid var(--line);color:var(--paper);border-radius:6px;padding:9px 11px;font:inherit;margin-top:6px}
+  .note{color:var(--muted);font-size:11.5px;margin-top:8px}
+  .miss{color:var(--amber);font-family:var(--mono);font-size:12px}
+  .refuse{color:var(--muted);font-family:var(--mono);font-size:12px}
+  a{color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <span class="glyph">∞Δ∞</span>
+  <div><b>Operator</b> <span class="sub">read &amp; draft · your node is the law · nothing here executes</span></div>
+  <span class="law" id="law">loopback · GET-only to node</span>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script>
+const NAV = [["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
+             ["corpus","Corpus"],["chat","Chat"],["receipts","Receipts"],["port","Port draft"]];
+let cur = location.hash.slice(1) || "morning";
+
+function esc(s){return (s??"").toString().replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+async function get(p){const r=await fetch(p);return r.json();}
+async function post(p,b){const r=await fetch(p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});return r.json();}
+function copyBtn(text){const id="c"+Math.random().toString(36).slice(2);
+  setTimeout(()=>{const b=document.getElementById(id);if(b)b.onclick=()=>{navigator.clipboard.writeText(text);b.textContent="copied";setTimeout(()=>b.textContent="Copy",1200);};},0);
+  return `<button id="${id}" class="btn">Copy</button>`;}
+function runBlock(label,text){return text?`<div><span class="cite">${label}</span> ${copyBtn(text)}<pre class="run">${esc(text)}</pre></div>`:"";}
+
+function nav(){document.getElementById("nav").innerHTML=NAV.map(([k,t])=>
+  `<button class="${k===cur?'active':''}" onclick="go('${k}')">${t}</button>`).join("");}
+function go(k){cur=k;location.hash=k;nav();render();}
+
+function nodeDown(d){return `<div class="card"><h3>Node</h3><div class="miss">⚠ ${esc(d.stale||d.out_reason||'node unreachable')}</div>
+  <div class="note">Facts are unknown, not fabricated. Start the node, then reload. Everything below is unavailable until it answers.</div></div>`;}
+
+async function render(){
+  const m=document.getElementById("main"); m.innerHTML="<div class='card'>Loading…</div>";
+  try{ await PANELS[cur](m); }catch(e){ m.innerHTML=`<div class="card"><span class="miss">error: ${esc(e.message)}</span></div>`; }
+}
+
+const PANELS={
+ async morning(m){
+   const d=await get("/api/morning");
+   if(!d.ok) return m.innerHTML=nodeDown(d);
+   const f=d.facts, g=f.gpu||{};
+   const gpu=g.state==="ok"?`${g.free_mib}/${g.total_mib} MiB free · ${g.util_pct}% util`:`${g.note||'no gpu'} [${g.state}]`;
+   m.innerHTML=`
+   <div class="card"><h3>Node status (facts)</h3><div class="kv">
+     <span class="k">fp</span> ${esc(f.node_fp)}<br>
+     <span class="k">gpu</span> ${esc(gpu)}<br>
+     <span class="k">peers</span> ${f.peers?.count||0} ${esc((f.peers?.labels||[]).join(", "))}<br>
+     <span class="k">grants</span> ${(f.grants||[]).length} · units offered ${f.units_offered}<br>
+     <span class="k">puller</span> <span class="${f.puller_running?'up':'down'}">${f.puller_running?'running':'stopped'}</span>
+       · model <span class="${f.model_up?'up':'down'}">${f.model_up?'up':'down'}</span>
+       · gates <span class="${d.pending_gates?'warn':'up'}">${d.pending_gates??'?'} pending</span>
+   </div></div>
+   <div class="card"><h3>LGP lens (facts vs memory, labeled)</h3><pre class="run">${esc(d.lens)}</pre></div>`;
+ },
+ async gates(m){
+   const d=await get("/api/gates");
+   if(!d.ok) return m.innerHTML=nodeDown(d);
+   if(!d.count) return m.innerHTML=`<div class="card"><h3>Gate inbox</h3><div class="up">✓ clear — no pending acts.</div></div>`;
+   m.innerHTML=`<div class="card"><h3>Pending gates — you dispose (owner-only)</h3>${d.gates.map(x=>{
+     const r=x.gate.request||{}, p=x.gate.provenance||{}, dz=x.dispose||{};
+     return `<div class="prop"><b>${esc(r.action_class||x.gate.req_id)}</b>
+       <div class="kv"><span class="k">id</span> ${esc(x.gate.req_id)} · <span class="k">risk</span> ${esc(r.risk_level||'?')}
+        · <span class="k">boundary</span> ${esc(p.boundary||'—')} · <span class="k">src</span> ${esc(p.source||'kernel')}</div>
+       ${runBlock("APPROVE (RUN)",dz.RUN_approve)}${runBlock("DENY (RUN)",dz.RUN_deny)}</div>`;}).join("")}
+     <div class="note">${esc(d.note)}</div></div>`;
+ },
+ async capacity(m){
+   const d=await get("/api/capacity");
+   if(!d.ok) return m.innerHTML=nodeDown(d);
+   const props=d.data?.proposals||[];
+   m.innerHTML=`<div class="card"><h3>Capacity — offer / renew / revoke (you issue)</h3>
+     ${props.length?props.map(p=>`<div class="prop"><b>${esc(p.peer)}</b> · expires ${esc(p.expires)} · models ${esc(JSON.stringify(p.models))}
+       ${runBlock("RENEW 7d (RUN)",p.renew_run)}${runBlock("REVOKE (RUN)",p.revoke_run)}</div>`).join(""):'<div class="note">no grants present</div>'}
+     <div class="note">${esc(d.data?.gate||'')}</div></div>`;
+ },
+ async corpus(m){
+   m.innerHTML=`<div class="card"><h3>Corpus — search the sealed shelf (cite-or-refuse)</h3>
+     <input id="cq" placeholder="e.g. immutable general ledger with human oversight" onkeydown="if(event.key==='Enter')doCorpus()">
+     <div style="margin-top:8px"><button class="btn" onclick="doCorpus()">Search</button></div>
+     <div id="cout" style="margin-top:10px"></div>
+     <div class="note">Every result is a cited sealed chunk, or the corpus refuses. XRP (S0-04) returns MISSING — never invented prose.</div></div>`;
+ },
+ async chat(m){
+   m.innerHTML=`<div class="card"><h3>Chat — the node's local mind (loopback; reads &amp; proposes)</h3>
+     <textarea id="cp" rows="3" placeholder="Is my node earning tonight? what expires soon? what should I do?"></textarea>
+     <div style="margin-top:8px"><button class="btn" onclick="doChat()">Ask</button> <span class="note" id="cmodel"></span></div>
+     <div id="chout" style="margin-top:12px"></div>
+     <div class="note">Loopback model only. It never executes — consequential acts come back as PROPOSE / RUN / GATE for your keyboard. A frontier model is only ever a drafted, labeled Port crossing you sanction.</div></div>`;
+ },
+ async receipts(m){
+   const d=await get("/api/receipts");
+   const inf=(d.inference?.receipts)||[], aud=(d.audit?.cylinders)||[];
+   m.innerHTML=`<div class="card"><h3>Receipts — what actually happened</h3>
+     <div class="kv"><span class="k">inference receipts</span> ${inf.length}<br><span class="k">audit cylinders</span> ${aud.length}</div>
+     ${inf.length||aud.length?'<pre class="run">'+esc(JSON.stringify({inference:inf.slice(0,8),audit:aud.slice(0,8)},null,2))+'</pre>'
+       :'<div class="note">No gated acts recorded yet. Receipts appear when you sanction a crossing, dispose a gate, or a compute job completes — never from asking a question.</div>'}</div>`;
+ },
+ async port(m){
+   m.innerHTML=`<div class="card"><h3>Port crossing — draft only (you sanction on the keyboard)</h3>
+     <input id="pt" placeholder="target (e.g. external-relay)">
+     <input id="pi" placeholder='instruction JSON (e.g. {"send":"ref://demo"})' style="margin-top:8px">
+     <input id="pw" placeholder="why (rationale)" style="margin-top:8px">
+     <div style="margin-top:8px"><button class="btn" onclick="doPort()">Draft crossing</button></div>
+     <div id="pout" style="margin-top:10px"></div>
+     <div class="note">This drafts the exact RUN command; it does NOT open the crossing. Reaching outside the node is a Port crossing you sanction by hand (owner-only). The Port carries a directive, never value.</div></div>`;
+ },
+};
+
+async function doCorpus(){
+  const q=document.getElementById("cq").value.trim(); const o=document.getElementById("cout");
+  if(!q)return; o.innerHTML="Searching…";
+  const d=await get("/api/corpus?q="+encodeURIComponent(q));
+  if(d.missing) return o.innerHTML=`<div class="miss">MISSING — ${esc(d.reason)}</div><div class="cite">${esc(d.citation)}</div>`;
+  if(!d.ok) return o.innerHTML=`<div class="refuse">${esc(d.refuse||d.out_reason)}</div>`;
+  o.innerHTML=(d.results||[]).map(h=>`<div class="prop"><span class="tag ${h.kind}">${h.kind}</span>
+    <span class="cite">${esc(h.citation)}</span> · <span class="note">score ${h.score}</span>
+    <div style="margin-top:6px">${esc(h.text)}</div></div>`).join("");
+}
+async function doChat(){
+  const p=document.getElementById("cp").value.trim(); const o=document.getElementById("chout");
+  if(!p)return; o.innerHTML="Thinking on the local model…";
+  const d=await post("/api/chat",{prompt:p});
+  document.getElementById("cmodel").textContent=d.model?("model: "+d.model):"(no local model — facts + proposals only)";
+  const props=(d.proposals?.proposals)||[];
+  o.innerHTML=`<div style="white-space:pre-wrap;margin-bottom:12px">${esc(d.answer)}</div>
+    <div class="note">facts: ${esc(d.facts_digest)}</div>
+    ${props.length?'<h3 style="margin-top:12px">Exact proposals (copy to keyboard)</h3>'+props.map(x=>
+      `<div class="prop"><b>${esc(x.peer)}</b> · expires ${esc(x.expires)}${runBlock("RENEW",x.renew_run)}${runBlock("REVOKE",x.revoke_run)}</div>`).join(""):''}`;
+}
+async function doPort(){
+  const t=document.getElementById("pt").value.trim(), w=document.getElementById("pw").value.trim();
+  let inst={}; try{inst=JSON.parse(document.getElementById("pi").value||"{}");}catch(e){document.getElementById("pout").innerHTML='<div class="miss">instruction must be valid JSON</div>';return;}
+  const d=await post("/api/draft/crossing",{target:t,instruction:inst,why:w});
+  const o=document.getElementById("pout");
+  if(!d.ok) return o.innerHTML=`<div class="refuse">${esc(d.out_reason||d.error)}</div>`;
+  o.innerHTML=`<div class="prop"><b>PROPOSE:</b> ${esc(d.data.PROPOSE)}${runBlock("RUN",d.data.RUN)}<div class="note">${esc(d.data.GATE)}</div></div>`;
+}
+nav(); render();
+</script>
+</body>
+</html>
