@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# BCK Composite v0 launcher — ONE action: check the node, boot it if down, boot the web if down, open the app.
+#
+# Idempotent: against already-running services it ATTACHES, never double-boots. It holds NO credential and
+# disposes NOTHING — it boots local services and opens a browser, nothing more. If a service cannot boot it
+# says so plainly (never a blank app); if the node is unreachable the app still opens and every screen shows
+# the stale/unreachable truth, never a fabricated fact.
+#
+# Config (env): OPERATOR_USN_URL (node) · OPERATOR_WEB_HOST/PORT (web) · OPERATOR_NODE_START (optional command
+# to boot the node if it is down — operator-set; if unset, a down node is reported, not force-booted).
+set -u
+NODE_URL="${OPERATOR_USN_URL:-http://127.0.0.1:8421/api/v1}"
+WEB_HOST="${OPERATOR_WEB_HOST:-127.0.0.1}" ; WEB_PORT="${OPERATOR_WEB_PORT:-8722}"
+WEB_URL="http://$WEB_HOST:$WEB_PORT/"
+HERE="$(cd "$(dirname "$0")/.." && pwd)"       # repo root (bin/ is one level down)
+NODE_START="${OPERATOR_NODE_START:-}"
+
+up()      { curl -s -o /dev/null --max-time 3 "$1" 2>/dev/null; }
+wait_up() { curl -s --retry-connrefused --retry "${2:-30}" --retry-delay 1 -o /dev/null --max-time 3 "$1" 2>/dev/null; }
+
+echo "∞Δ∞ operator-app launcher — check → boot-if-down → open (idempotent · disposes nothing)"
+
+# 1 · node
+if up "$NODE_URL/status"; then
+  echo "  node: up      ($NODE_URL)"
+elif [ -n "$NODE_START" ]; then
+  echo "  node: down    → booting via OPERATOR_NODE_START"
+  setsid bash -c "$NODE_START" </dev/null >/tmp/operator_node.log 2>&1 &
+  if wait_up "$NODE_URL/status" 30; then echo "  node: up      (booted)"
+  else echo "  node: ERROR  → did not come up (see /tmp/operator_node.log). Opening the app anyway — screens will show 'node unreachable', not fabricated facts."; fi
+else
+  echo "  node: DOWN    → no OPERATOR_NODE_START set. The app will open and honestly show 'node unreachable'."
+  echo "                  set OPERATOR_NODE_START='<your node boot command>' to auto-boot it."
+fi
+
+# 2 · web (idempotent — attach if already up)
+if up "$WEB_URL"; then
+  echo "  web:  up      ($WEB_URL) — attaching, not re-booting"
+else
+  echo "  web:  down    → booting"
+  PY="$HERE/.venv/bin/python" ; [ -x "$PY" ] || PY=python3
+  setsid "$PY" "$HERE/web/server.py" --host "$WEB_HOST" --port "$WEB_PORT" </dev/null >/tmp/operator_web.log 2>&1 &
+  if wait_up "$WEB_URL" 20; then echo "  web:  up      (booted)"
+  else echo "  web:  ERROR  → did not boot (see /tmp/operator_web.log)"; exit 1; fi
+fi
+
+# 3 · open
+echo "  open: $WEB_URL"
+if command -v xdg-open >/dev/null 2>&1; then xdg-open "$WEB_URL" >/dev/null 2>&1 || true
+elif command -v open   >/dev/null 2>&1; then open   "$WEB_URL" >/dev/null 2>&1 || true
+else echo "                  (open $WEB_URL in your browser)"; fi
+echo "DONE"

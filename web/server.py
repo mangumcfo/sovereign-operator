@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parent.parent          # sovereign-operator repo
 sys.path.insert(0, str(ROOT / "src"))                  # sovereign_operator package
 sys.path.insert(0, str(ROOT))                          # corpus package
 
-from sovereign_operator import config, lens, tools      # noqa: E402
+from sovereign_operator import config, lens, tools, apps  # noqa: E402
 from sovereign_operator.cli import SYSTEM, _claim_guard  # noqa: E402
 from sovereign_operator.http_client import UsnUnreachable, mind_complete, mind_up, pick_model  # noqa: E402
 
@@ -169,6 +169,86 @@ def ep_draft_verify(body):
                 "The web surface never posts this; it drafts it."}}
 
 
+def ep_apps(_q):
+    """List installed operator apps (metadata only) from the PRIVATE operator home. No node call. Apps are
+    never in this repo — install/uninstall is local operator config, not a node disposition."""
+    try:
+        return {"ok": True, "apps": apps.list_apps(),
+                "note": "Apps are PRIVATE instances under the operator home (~/.sovereign_operator/apps), never "
+                        "in this repo. Install/uninstall is local config; it disposes nothing on the node."}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+def ep_records(q):
+    """Records index for an app — THREE-STATE, live-verified against the node at render (X4):
+    `live` (node holds the datum) · `unverified` (node unreachable — could not check, never fabricated) ·
+    `MISSING` (node answered, datum absent). App-side only: the tracked ids live in the PRIVATE app home;
+    this adds NO node route — it only GETs `/storage/datum/<id>`."""
+    name = (q.get("app") or [""])[0].strip()
+    app = apps.get_app(name) if name else None
+    if not app:
+        return {"ok": False, "out_reason": f"no installed app {name!r}"}
+    facts, _stale = _facts_or_stale()
+    node_up = facts is not None
+    rows = []
+    for rec in app.get("records", []):
+        rid = rec.get("id")
+        if not node_up:
+            rows.append({"id": rid, "note": rec.get("note", ""), "state": "unverified",
+                         "detail": "node unreachable — cannot verify (not fabricated)"})
+            continue
+        r = _safe(lambda rid=rid: tools.usn_storage_read(rid))
+        if r.get("ok"):
+            d = r.get("data", {})
+            rows.append({"id": rid, "note": rec.get("note", ""), "state": "live",
+                         "root": d.get("root"), "mandate": d.get("mandate")})
+        else:
+            rows.append({"id": rid, "note": rec.get("note", ""), "state": "MISSING",
+                         "detail": r.get("out_reason", "the node has no such datum")})
+    return {"ok": True, "app": app.get("name"), "mandate": app.get("mandate"), "node_up": node_up, "records": rows,
+            "counts": {"live": sum(x["state"] == "live" for x in rows),
+                       "MISSING": sum(x["state"] == "MISSING" for x in rows),
+                       "unverified": sum(x["state"] == "unverified" for x in rows)}}
+
+
+def ep_app_install(body):
+    """Install a PRIVATE app instance (local operator config; NO node call, NOT a disposition)."""
+    name, mandate = str(body.get("name", "")).strip(), str(body.get("mandate", "")).strip()
+    if not name or not mandate:
+        return {"ok": False, "out_reason": "name and mandate required"}
+    try:
+        m = apps.install_app(name, mandate=mandate, label=str(body.get("label", "")), at=str(body.get("at", "")))
+        return {"ok": True, "installed": m,
+                "note": "PRIVATE local app instance under the operator home — not the repo. No node act."}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "out_reason": f"{type(e).__name__}: {e}"}
+
+
+def ep_app_uninstall(body):
+    """Uninstall a PRIVATE app instance — removes its manifest + private record list. NO node call: nothing on
+    the node changes; only the operator's local console forgets the app."""
+    name = str(body.get("name", "")).strip()
+    try:
+        existed = apps.uninstall_app(name)
+        return {"ok": True, "uninstalled": existed, "name": name,
+                "note": "Removed the PRIVATE app instance. No node act; the node's records are untouched."}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "out_reason": f"{type(e).__name__}: {e}"}
+
+
+def ep_app_track(body):
+    """Track a record id under an app (append to its PRIVATE record list; NO node call)."""
+    name, rid = str(body.get("name", "")).strip(), str(body.get("id", "")).strip()
+    if not name or not rid:
+        return {"ok": False, "out_reason": "app name and record id required"}
+    try:
+        apps.track_record(name, rid, str(body.get("note", "")))
+        return {"ok": True, "tracked": rid, "app": name, "note": "Added to the app's PRIVATE record list. No node act."}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "out_reason": f"{type(e).__name__}: {e}"}
+
+
 def _safe(fn):
     try:
         return fn()
@@ -188,9 +268,12 @@ class _Nb:
 
 GET_ROUTES = {"/api/morning": ep_morning, "/api/status": ep_status, "/api/gates": ep_gates,
               "/api/capacity": ep_capacity, "/api/receipts": ep_receipts, "/api/corpus": ep_corpus,
-              "/api/storage": ep_storage_read}
+              "/api/storage": ep_storage_read, "/api/apps": ep_apps, "/api/records": ep_records}
 POST_ROUTES = {"/api/chat": ep_chat, "/api/draft/crossing": ep_draft_crossing,
-               "/api/draft/storage": ep_draft_storage, "/api/draft/verify": ep_draft_verify}
+               "/api/draft/storage": ep_draft_storage, "/api/draft/verify": ep_draft_verify,
+               # local app management — operator config only, NO node call (not a disposition)
+               "/api/apps/install": ep_app_install, "/api/apps/uninstall": ep_app_uninstall,
+               "/api/apps/track": ep_app_track}
 
 
 class Handler(http.server.BaseHTTPRequestHandler):

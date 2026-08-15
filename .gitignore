@@ -23,3 +23,8 @@ venv/
 build/
 dist/
 .pytest_cache/
+# operator private / app instances — NEVER commit personal business
+apps/*/
+!apps/README*
+drafts.db
+/tmp_*

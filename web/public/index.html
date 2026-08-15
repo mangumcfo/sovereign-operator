@@ -48,9 +48,9 @@
 <main id="main"></main>
 
 <script>
-const NAV = [["drills","Drills"],["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
-             ["passport","Passport"],["corpus","Corpus"],["chat","Chat"],["receipts","Receipts"],["port","Port draft"]];
-let cur = location.hash.slice(1) || "drills";
+const NAV = [["apps","Apps"],["drills","Drills"],["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
+             ["passport","Passport"],["records","Records"],["corpus","Corpus"],["chat","Chat"],["receipts","Receipts"],["port","Port draft"]];
+let cur = location.hash.slice(1) || "apps";
 
 function esc(s){return (s??"").toString().replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 async function get(p){const r=await fetch(p);return r.json();}
@@ -73,41 +73,78 @@ async function render(){
 }
 
 const DRILLS=[
- {n:1,t:"Gate — raise → dispose → receipt",go:"port",steps:[
+ {n:1,t:"Gate — raise → dispose → receipt",go:"port",cite:"BCK coordinated-capacity step 2–3 · graph: POST /api/v1/onboard/run + /breath_gate/&lt;id&gt;/approve|deny · tests: test_onboard_run_* · test_port_crossing_surfaces_gate_then_sanctions_value_free",steps:[
    "Port draft tab → draft a crossing (target <code>external-relay</code>, instruction <code>{&quot;send&quot;:&quot;ref://demo&quot;}</code>) → copy the RUN, run it in a terminal (this raises a PENDING gate).",
    "Gates tab → the pending gate appears with its exact APPROVE / DENY RUN text.",
    "Copy the DENY (or APPROVE→sanction) RUN → run on your keyboard / use the console Gate Inbox. The web never disposes.",
    "Receipts tab → the disposition / crossing_root receipt is visible. Verify: <code>curl /api/v1/audit/cylinders</code> or the sanction response hash."]},
- {n:2,t:"Capacity — renew / revoke (verbatim)",go:"capacity",steps:[
+ {n:2,t:"Capacity — renew / revoke (verbatim)",go:"capacity",cite:"BCK coordinated-capacity step 1 &amp; 6 · compute_share_offer / _pull · tests: test_t1_t4_delivery_and_receipt_verify · test_t3_over_units_refused_receipted_and_returned",steps:[
    "Capacity tab → each grant shows the node's OWN renew_run / revoke_run byte-for-byte.",
    "Copy RENEW → run in a terminal when a grant is near expiry; or REVOKE (<code>rm grant_*.json</code>) — the puller denies the next job ~5s later.",
    "Morning tab → grant days-left resets after a renew. The operator never issues; you do."]},
- {n:3,t:"Storage / material passport — one real datum",go:"passport",steps:[
-   "Passport tab → enter a real content ref (a serial, an insurance-PDF hash, a QuadRoof panel serial) + why → Draft.",
+ {n:3,t:"Storage / material passport — one real datum",go:"passport",cite:"BCK coordinated-capacity step 5 · graph: POST /api/v1/storage/datum + /verify · tests: test_storage_store_get_verify_and_tamper_refusal · test_stored_datum_get_and_verify_survive_restart",steps:[
+   "Passport tab → enter a real content ref (a serial, an insurance-PDF hash, an equipment serial) + why → Draft.",
    "Copy the RUN → run on your keyboard: it stores an owner-scoped, Merkle-bound datum.",
    "Passport tab → paste the returned datum id → Read it back to verify it's bound. The operator drafts; you store."]},
  {n:4,t:"Corpus — cite on-corpus + XRP→MISSING",go:"corpus",steps:[
    "Corpus tab → search an on-corpus topic (e.g. <i>immutable general ledger</i>) → every hit is a cited sealed chapter.",
    "Search <i>the XRP book</i> or <i>book 4 of the foundation series</i> → returns MISSING with the catalog row, never invented prose.",
    "Verify: the citation resolves to a real chapter; XRP has zero chunks by construction."]},
- {n:5,t:"Port draft — node untouched until you sanction",go:"port",steps:[
+ {n:5,t:"Port draft — node untouched until you sanction",go:"port",cite:"BCK coordinated-capacity step 3 · graph: POST /api/v1/port/crossing + /sanction · test: test_port_crossing_surfaces_gate_then_sanctions_value_free · value-free receipt",steps:[
    "Port draft tab → draft a crossing → you get the exact RUN text, nothing more.",
    "The node is touched 0 times by the draft (verify: the node access log gains no line from the draft).",
    "Reaching outside the node is a Port crossing YOU sanction (owner-only). The Port carries a directive, never value."]},
 ];
 const PANELS={
+ async apps(m){
+   const d=await get("/api/apps"); const list=(d.ok&&d.apps)||[];
+   m.innerHTML=`<div class="card"><h3>Apps — installed operator apps (private to this machine)</h3>
+     <div class="note">An app is a PRIVATE instance under your operator home — never in the public repo. Install one to track its records under a mandate; uninstall removes it from the console with no trace. Install/uninstall is local config — it touches the node 0 times.</div>
+     ${list.length?list.map(a=>`<div class="prop"><b>${esc(a.label||a.name)}</b> <span class="cite">${esc(a.name)}</span>
+        <div class="kv"><span class="k">mandate</span> ${esc(a.mandate)} · <span class="k">records</span> ${(a.records||[]).length} · <span class="k">installed</span> ${esc(a.installed_at||'—')}</div>
+        <div style="margin-top:6px"><button class="btn" onclick="window._recApp='${esc(a.name)}';go('records')">Open records →</button>
+          <button class="btn" onclick="doAppUninstall('${esc(a.name)}')">Uninstall</button></div></div>`).join("")
+       :'<div class="note">No apps installed. Install one below.</div>'}</div>
+   <div class="card"><h3>Install an app (private)</h3>
+     <input id="ainame" placeholder="app name — a lowercase slug, e.g. myops (no personal prose in the name)">
+     <input id="aimand" placeholder="mandate — the scope its records live under" style="margin-top:8px">
+     <input id="ailabel" placeholder="label (optional display name)" style="margin-top:8px">
+     <div style="margin-top:8px"><button class="btn" onclick="doAppInstall()">Install</button></div>
+     <div id="aiout" style="margin-top:10px"></div>
+     <div class="note">Creates <code>~/.sovereign_operator/apps/&lt;name&gt;/</code> — private, never committed. No node call.</div></div>`;
+ },
+ async records(m){
+   const ap=await get("/api/apps"); const list=(ap.ok&&ap.apps)||[];
+   if(!list.length) return m.innerHTML=`<div class="card"><h3>Records index</h3><div class="note">No app installed. Install one in the Apps tab first.</div></div>`;
+   const sel=window._recApp||list[0].name;
+   const d=await get("/api/records?app="+encodeURIComponent(sel));
+   const opts=list.map(a=>`<option value="${esc(a.name)}" ${a.name===sel?'selected':''}>${esc(a.label||a.name)}</option>`).join("");
+   const chip=s=>s==='live'?'<span class="tag chunk">live</span>':(s==='MISSING'?'<span class="miss">MISSING</span>':'<span class="warn">unverified</span>');
+   const rows=(d.ok&&d.records)||[];
+   m.innerHTML=`<div class="card"><h3>Records index — live-verified against the node at render</h3>
+     <select id="recsel" onchange="window._recApp=this.value;render()" style="width:auto;background:#0e1116;color:var(--paper);border:1px solid var(--line);border-radius:6px;padding:6px 10px">${opts}</select>
+     <span class="note"> ${d.node_up?'node up — rows verified now':'node unreachable — rows shown as unverified, never fabricated'}</span>
+     <div class="kv" style="margin-top:8px"><span class="k">live</span> ${d.counts?.live||0} · <span class="miss">MISSING</span> ${d.counts?.MISSING||0} · <span class="warn">unverified</span> ${d.counts?.unverified||0}</div>
+     ${rows.length?rows.map(r=>`<div class="prop">${chip(r.state)} <span class="cite">${esc(r.id)}</span>
+        ${r.state==='live'?`<div class="kv"><span class="k">root</span> ${esc((r.root||'').slice(0,24))}… · <span class="k">mandate</span> ${esc(r.mandate)}</div>`:`<div class="note">${esc(r.detail||'')}</div>`}
+        ${r.note?`<div class="note">${esc(r.note)}</div>`:''}</div>`).join(""):'<div class="note">No records tracked yet. Store a datum (Passport tab), then track its id here.</div>'}
+     <div style="margin-top:10px"><input id="trkid" placeholder="track a datum id under this app (from a stored receipt)" style="width:58%;display:inline-block">
+       <button class="btn" onclick="doTrack('${esc(sel)}')">Track</button></div>
+     <div class="note">A row is <b>live</b> only if the node holds it now · <b>MISSING</b> if the node answered and it is absent · <b>unverified</b> if the node could not be reached — never a fabricated record. Tracked ids are private to this app.</div></div>`;
+ },
  async drills(m){
    m.innerHTML=`<div class="card"><h3>Cockpit drills — exercise the node over existing routes</h3>
      <div class="note">Each drill: read on the web, draft the exact command, dispose on your keyboard / the console, verify from receipts. The web reads and drafts — <b>it never executes against the node</b>. Propose-only drills (livelihood / succession / protection) are drafts only; no second-party or live-root change without a separate KM word.</div></div>
      ${DRILLS.map(d=>`<div class="card"><h3>Drill ${d.n} · ${d.t}</h3>
        <ol style="margin:6px 0 10px;padding-left:20px;line-height:1.7">${d.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+       ${d.cite?`<div class="cite" style="margin:6px 0;font-size:11px">↔ ${d.cite}</div>`:""}
        <button class="btn" onclick="go('${d.go}')">Open the ${d.go} tab →</button></div>`).join("")}
      <div class="card"><h3>Fences (always)</h3><div class="note">No agent POST to the node · no self-approve (you dispose) · corpus cites or refuses · frontier only as a drafted crossing. Receipts appear only from real acts — never from asking a question.</div></div>`;
  },
  async passport(m){
    m.innerHTML=`<div class="card"><h3>Passport — store a real datum (draft only; you store on the keyboard)</h3>
      <input id="scontent" placeholder="content ref — a serial, a file hash, a record id (e.g. sha256:… or QR-PANEL-0042)">
-     <input id="swhy" placeholder="why (e.g. QuadRoof panel provenance)" style="margin-top:8px">
+     <input id="swhy" placeholder="why (e.g. equipment provenance)" style="margin-top:8px">
      <div style="margin-top:8px"><button class="btn" onclick="doStorageDraft()">Draft store RUN</button></div>
      <div id="sdraft" style="margin-top:10px"></div>
      <div class="note">This drafts the exact <code>POST /storage/datum</code> command; it does NOT store. Datums are owner-scoped &amp; Merkle-bound. Run it on your keyboard, then verify below.</div></div>
@@ -242,6 +279,21 @@ async function doStorageVerify(){
   const d=await post("/api/draft/verify",{datum_id:id,content:c});
   if(!d.ok) return o.innerHTML=`<div class="refuse">${esc(d.out_reason||d.error)}</div>`;
   o.innerHTML=`<div class="prop"><b>PROPOSE:</b> ${esc(d.data.PROPOSE)}${runBlock("RUN",d.data.RUN)}<div class="note">${esc(d.data.GATE)}</div></div>`;
+}
+async function doAppInstall(){
+  const name=document.getElementById("ainame").value.trim(), mandate=document.getElementById("aimand").value.trim(), label=document.getElementById("ailabel").value.trim();
+  const o=document.getElementById("aiout"); if(!name||!mandate){o.innerHTML='<div class="miss">name and mandate required</div>';return;}
+  const d=await post("/api/apps/install",{name,mandate,label,at:new Date().toISOString()});
+  if(!d.ok){o.innerHTML=`<div class="refuse">${esc(d.out_reason||d.error)}</div>`;return;}
+  o.innerHTML=`<div class="up">✓ installed ${esc(name)} (private — under your operator home, not the repo)</div>`; setTimeout(render,500);
+}
+async function doAppUninstall(name){
+  if(!confirm("Uninstall app '"+name+"'? Removes its PRIVATE instance from the console. No node change.")) return;
+  await post("/api/apps/uninstall",{name}); if(window._recApp===name)window._recApp=null; render();
+}
+async function doTrack(name){
+  const el=document.getElementById("trkid"); const id=(el&&el.value.trim())||""; if(!id)return;
+  await post("/api/apps/track",{name,id}); render();
 }
 nav(); render();
 </script>
