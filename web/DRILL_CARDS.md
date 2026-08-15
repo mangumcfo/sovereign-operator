@@ -30,7 +30,7 @@ sanction returns a `crossing_root` hash. `curl $B/breath_gate/pending` → the g
 **Verify:** Morning tab → grant days-left resets after a renew. The operator never issues — you do.
 
 ## Drill 3 · Storage / material passport — one real datum
-**Do:** Passport tab → enter a REAL content ref (a serial / insurance-PDF sha256 / QuadRoof panel
+**Do:** Passport tab → enter a REAL content ref (a serial / insurance-PDF sha256 / roof panel
 serial) + why → Draft → copy the RUN → run it (stores an owner-scoped, Merkle-bound datum) → paste the
 returned id → Read it back.
 **CLI fallback:**

@@ -205,7 +205,7 @@ def ep_records(q):
                          "root": d.get("root"), "mandate": d.get("mandate")})
         else:
             rows.append({"id": rid, "note": rec.get("note", ""), "state": "MISSING",
-                         "detail": r.get("out_reason", "the node has no such datum")})
+                         "detail": "the node holds no such datum (verified absent, not fabricated)"})
     return {"ok": True, "app": app.get("name"), "mandate": app.get("mandate"), "node_up": node_up, "records": rows,
             "counts": {"live": sum(x["state"] == "live" for x in rows),
                        "MISSING": sum(x["state"] == "MISSING" for x in rows),
@@ -238,7 +238,8 @@ def ep_app_uninstall(body):
 
 
 def ep_app_track(body):
-    """Track a record id under an app (append to its PRIVATE record list; NO node call)."""
+    """Track a record id under an app (append to its PRIVATE record list; NO node call). Body field is `id`
+    (a bare datum id); an unknown field is refused cleanly."""
     name, rid = str(body.get("name", "")).strip(), str(body.get("id", "")).strip()
     if not name or not rid:
         return {"ok": False, "out_reason": "app name and record id required"}
