@@ -23,19 +23,44 @@ Continuity lives in the repo, corpus, receipts, issue thread, and operator state
 
 ## Read first, in this order
 
-1. `artifacts/world-platform/KM_NO1_OPERATOR_CONTEXT_2026-09-01.yaml`
-2. `artifacts/world-platform/LGP_SYMBOLIC_CONTEXT_v0.1.yaml`
-3. `artifacts/world-platform/WORLD_PLATFORM_LGP_v0.1.md`
-4. `artifacts/world-platform/WORLD_PLATFORM_EXECUTION_PACKET_v0.1.md`
-5. `corpus/README.md`
-6. `corpus/CORPUS_RETRIEVAL_DESIGN_2026-08-14.md`
-7. `corpus/retrieval.py`
-8. `web/README.md`
-9. `web/server.py`
-10. `web/public/index.html`
-11. GitHub Issue #1 and its newest comments.
+1. `artifacts/world-platform/LUM3N_CHECKPOINT_v0.1.yaml` — **current restart-safe implementation state**
+2. `artifacts/world-platform/KM_NO1_OPERATOR_CONTEXT_2026-09-01.yaml`
+3. `artifacts/world-platform/LGP_SYMBOLIC_CONTEXT_v0.1.yaml`
+4. `artifacts/world-platform/WORLD_PLATFORM_LGP_v0.1.md`
+5. `artifacts/world-platform/WORLD_PLATFORM_EXECUTION_PACKET_v0.1.md`
+6. `corpus/README.md`
+7. `corpus/CORPUS_RETRIEVAL_DESIGN_2026-08-14.md`
+8. `corpus/retrieval.py`
+9. `web/README.md`
+10. `web/server.py`
+11. `web/public/index.html`
+12. GitHub Issue #1 and its newest comments.
 
 If this branch's World Platform artifacts collide with sealed corpus / Book↔Code receipts, **the collision is evidence to surface**, not a reason to silently overwrite the corpus.
+
+## Restart-safe Lum3n semantics
+
+Lum3n/Codex is allowed to be an ephemeral process. The implementation state must not be ephemeral.
+
+Every new Lum3n session MUST:
+
+```text
+checkout branch
+  -> read AGENTS.md
+  -> read LUM3N_CHECKPOINT_v0.1.yaml
+  -> read Issue #1 deltas
+  -> inspect branch tip / git status
+  -> select ONE highest-priority unblocked work item
+  -> implement bounded change
+  -> run tests
+  -> commit durable evidence
+  -> report CODE / TEST / RUNTIME / RECEIPT to Issue #1
+  -> exit safely
+```
+
+Never restart architecture discovery from zero merely because a model session restarted. Never make chat history the single source of work state. A stopped agent is acceptable; lost state is not.
+
+If interrupted mid-task, resume from repository state. If a human-class boundary or unsafe unknown is reached, checkpoint the blocker and stop rather than improvising authority.
 
 ## Objective: symbolic LGP
 
@@ -102,7 +127,7 @@ Do not ask KM to redefine these roles:
 - **AA:** score with evidence.
 - **SO:** witness corpus vs process, never GREEN.
 - **GPT/SOL role:** human-context + finish `web/` against corpus; no new canon.
-- **Codex/Devin:** implementation workers; high capability permitted, authority not implied.
+- **Lum3n / Codex:** implementation worker; high capability permitted, authority not implied.
 
 ## Work allowed now
 
