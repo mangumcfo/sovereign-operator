@@ -48,9 +48,9 @@
 <main id="main"></main>
 
 <script>
-const NAV = [["apps","Apps"],["drills","Drills"],["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
+const NAV = [["needs","Needs You"],["apps","Apps"],["drills","Drills"],["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
              ["passport","Passport"],["records","Records"],["corpus","Corpus"],["chat","Chat"],["receipts","Receipts"],["port","Port draft"]];
-let cur = location.hash.slice(1) || "apps";
+let cur = location.hash.slice(1) || "needs";
 
 function esc(s){return (s??"").toString().replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
 async function get(p){const r=await fetch(p);return r.json();}
@@ -96,6 +96,22 @@ const DRILLS=[
    "Reaching outside the node is a Port crossing YOU sanction (owner-only). The Port carries a directive, never value."]},
 ];
 const PANELS={
+ async needs(m){
+   const d=await get("/api/needs-you"), feeds=d.feeds||{}, k=d.kpi||{}, on=k.open_node||{};
+   const feed=(name,x)=>`<span class="${x?.ok?'up':'warn'}">${name} ${x?.ok?'live':'unavailable'}</span>`;
+   const cards=d.cards||[];
+   m.innerHTML=`<div class="card"><h3>Needs You — exceptions and human decisions</h3>
+     <div class="kv">${feed('node',feeds.node)} · ${feed('Port',feeds.port)} · <span class="k">observed</span> ${esc(feeds.port?.observed_at||'—')}</div>
+     ${on.paint?`<div class="prop"><b>Open node</b> <span class="${on.click?'up':'warn'}">${esc(on.state)}</span><div class="note">${esc(on.paint)}</div><div class="note">${esc(on.detail||'')}</div></div>`:''}
+     <div class="note">${esc(d.note||'')}</div></div>
+     ${cards.length?cards.map(c=>`<div class="card"><h3>${esc(c.kind)} · ${esc(c.state)} · ${esc(c.source)}</h3>
+       <b>${esc(c.what)}</b><div class="note" style="margin-top:6px">Why it rose: ${esc(c.why)}</div>
+       <pre class="run">${esc(JSON.stringify(c.evidence,null,2))}</pre>
+       ${c.exact_effect?`<div class="cite">Exact proposed effect</div><div>${esc(c.exact_effect)}</div>`:''}
+       ${runBlock("APPROVE — DRAFT ONLY",c.run_approve)}${runBlock("DENY — DRAFT ONLY",c.run_deny)}
+       <div class="note">${esc(c.disposition)}</div></div>`).join(''):
+       '<div class="card"><div class="up">✓ Nothing currently crosses the human boundary.</div></div>'}`;
+ },
  async apps(m){
    const d=await get("/api/apps"); const list=(d.ok&&d.apps)||[];
    m.innerHTML=`<div class="card"><h3>Apps — installed operator apps (private to this machine)</h3>

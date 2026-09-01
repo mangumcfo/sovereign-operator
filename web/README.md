@@ -21,7 +21,7 @@ not a node capability** — a surface over what already exists.
 
 ## Panels
 
-`Morning` (status + LGP lens) · `Gates` (pending, with the exact dispose RUN text) · `Capacity`
+`Needs You` (Port obligations + pending gates, exception-only) · `Morning` (status + LGP lens) · `Gates` (pending, with the exact dispose RUN text) · `Capacity`
 (grants + verbatim renew/revoke) · `Corpus` (search → cited sealed chunks, or MISSING/refuse) · `Chat`
 (local mind; PROPOSE/RUN/GATE) · `Receipts` · `Port draft` (crossing RUN text).
 
@@ -33,10 +33,10 @@ cd ~/sovereign-operator
 # open in a browser on the node (loopback):
 #   http://127.0.0.1:8722/
 ```
-Env (defaults shown): `OPERATOR_USN_URL=http://127.0.0.1:8421/api/v1` · `OPERATOR_MIND_URL=http://127.0.0.1:11434/v1/chat/completions` · `OPERATOR_WEB_PORT=8722`. Corpus search needs a
+Env (defaults shown): `OPERATOR_USN_URL=http://127.0.0.1:8421/api/v1` · `OPERATOR_PORT_URL=http://127.0.0.1:8490` · `OPERATOR_MIND_URL=http://127.0.0.1:11434/v1/chat/completions` · `OPERATOR_WEB_PORT=8722`. Corpus search needs a
 local embed model (`ollama pull nomic-embed-text`).
 
 ## Endpoints (all read/draft)
 
-GET `/api/morning` `/api/status` `/api/gates` `/api/capacity` `/api/receipts` `/api/corpus?q=` ·
+GET `/api/needs-you` `/api/morning` `/api/status` `/api/gates` `/api/capacity` `/api/receipts` `/api/corpus?q=` ·
 POST (browser→this server only) `/api/chat` `/api/draft/crossing` `/api/draft/storage`. None POST the USN.

@@ -12,6 +12,9 @@ import pathlib
 # --- where the law lives (read-only, GET-only from here) ------------------------------------------
 USN_BASE = os.environ.get("OPERATOR_USN_URL", "http://127.0.0.1:8421/api/v1").rstrip("/")
 
+# --- the Port fleet membrane (read-only state feed; never an authority surface) -------------------
+PORT_BASE = os.environ.get("OPERATOR_PORT_URL", "http://127.0.0.1:8490").rstrip("/")
+
 # --- the operator's own mind (loopback model; same fence the USN chat uses) ------------------------
 MIND_URL = os.environ.get("OPERATOR_MIND_URL", "http://127.0.0.1:11434/v1/chat/completions")
 MIND_MODEL = os.environ.get("OPERATOR_MIND_MODEL", "").strip()  # empty = ask the node/model to pick

@@ -30,9 +30,10 @@ ROOT = Path(__file__).resolve().parent.parent          # sovereign-operator repo
 sys.path.insert(0, str(ROOT / "src"))                  # sovereign_operator package
 sys.path.insert(0, str(ROOT))                          # corpus package
 
-from sovereign_operator import config, lens, tools, apps  # noqa: E402
+from sovereign_operator import config, lens, tools, apps, needs_you  # noqa: E402
 from sovereign_operator.cli import SYSTEM, _claim_guard  # noqa: E402
 from sovereign_operator.http_client import UsnUnreachable, mind_complete, mind_up, pick_model  # noqa: E402
+from sovereign_operator.port_client import PortUnreachable, port_state  # noqa: E402
 
 PUBLIC = Path(__file__).resolve().parent / "public"
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
@@ -79,6 +80,29 @@ def ep_morning(_q):
 
 def ep_status(_q):
     return _safe(tools.usn_status)
+
+
+def ep_needs_you(_q):
+    """Human boundary: pending node gates plus exceptional Port obligations. Reads only."""
+    gate_rows, node_error = [], None
+    try:
+        pending = tools.usn_list_pending_gates()
+        if pending.get("ok"):
+            for item in pending["data"].get("pending", []):
+                gid = item.get("req_id") or item.get("id")
+                prepared = tools.usn_gate_prepare(gid) if gid else {"ok": False}
+                gate_rows.append({"gate": item, "dispose": prepared.get("data", {})})
+        else:
+            node_error = pending.get("out_reason") or "gate feed unavailable"
+    except UsnUnreachable as exc:
+        node_error = f"node unreachable ({type(exc).__name__})"
+
+    port, port_error = None, None
+    try:
+        port = port_state()
+    except PortUnreachable as exc:
+        port_error = f"Port unavailable ({type(exc).__name__})"
+    return needs_you.build(gate_rows, port, node_error=node_error, port_error=port_error)
 
 
 def ep_gates(_q):
@@ -267,7 +291,7 @@ class _Nb:
         return []
 
 
-GET_ROUTES = {"/api/morning": ep_morning, "/api/status": ep_status, "/api/gates": ep_gates,
+GET_ROUTES = {"/api/needs-you": ep_needs_you, "/api/morning": ep_morning, "/api/status": ep_status, "/api/gates": ep_gates,
               "/api/capacity": ep_capacity, "/api/receipts": ep_receipts, "/api/corpus": ep_corpus,
               "/api/storage": ep_storage_read, "/api/apps": ep_apps, "/api/records": ep_records}
 POST_ROUTES = {"/api/chat": ep_chat, "/api/draft/crossing": ep_draft_crossing,
