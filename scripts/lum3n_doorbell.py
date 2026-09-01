@@ -50,7 +50,11 @@ def _save_seen(seen: set[str]) -> None:
 
 def _is_bell(comment: dict) -> bool:
     body = str(comment.get("body") or "")
-    return bool(body.splitlines()) and body.splitlines()[0].strip() == "LUM3N DOORBELL"
+    if not body.splitlines():
+        return False
+    first = body.splitlines()[0].strip().upper()
+    # Exact machine bell plus the chair's actual durable steer grammar on Issue #1.
+    return first == "LUM3N DOORBELL" or first.startswith("KM-NO1 ") or first.startswith("NO1 ")
 
 
 def tick(*, prime: bool = False, dry_run: bool = False) -> dict:
@@ -62,22 +66,22 @@ def tick(*, prime: bool = False, dry_run: bool = False) -> dict:
         seen.update(str(comment.get("id")) for comment in bells)
         _save_seen(seen)
         return {"ok": True, "primed": len(bells), "queued": 0}
-    if new and not THREAD:
+    if new and not dry_run and not THREAD:
         raise RuntimeError("LUM3N_THREAD_ID is required when a new bell is waiting")
-    queued = []
-    for comment in new:
-        cid = str(comment.get("id"))
+    queued = [str(comment.get("id")) for comment in new]
+    if new and not dry_run:
+        packets = []
+        for comment in new:
+            packets.append(str(comment.get("body") or "")
+                           + f"\nSource: {comment.get('url') or 'Issue #1'}")
         message = (
-            "LUM3N DOORBELL — consume before new implementation. Read the linked PR and newest Issue #1 context; "
-            "acknowledge the exact delta. This queues work but grants no additional authority.\n\n"
-            + str(comment.get("body") or "")
-            + f"\n\nSource: {comment.get('url') or 'Issue #1'}"
+            f"LUM3N DOORBELL — {len(new)} new ordered No1 steer(s). Consume before new implementation; "
+            "read linked evidence and newest Issue #1 context, then acknowledge the exact delta. "
+            "Delivery grants no additional authority.\n\n---\n\n" + "\n\n---\n\n".join(packets)
         )
-        if not dry_run:
-            _run(["codex", "queue", "--thread", THREAD, "--message", message])
-            seen.add(cid)
-            _save_seen(seen)
-        queued.append(cid)
+        _run(["codex", "queue", "--thread", THREAD, "--message", message])
+        seen.update(queued)
+        _save_seen(seen)
     return {"ok": True, "bells": len(bells), "new": len(new), "queued": len(queued),
             "dry_run": dry_run}
 
