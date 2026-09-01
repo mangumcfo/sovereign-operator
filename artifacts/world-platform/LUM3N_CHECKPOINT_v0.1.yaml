@@ -1,0 +1,164 @@
+# LUM3N restart-safe checkpoint
+# STATUS: PINNED / UNSEALED / IMPLEMENTATION STATE
+# Purpose: make Codex session churn harmless. Every Lum3n run resumes here, performs one bounded work unit,
+# updates evidence in-repo/Issue #1, and never relies on hidden conversational continuity.
+
+identity:
+  seat: Lum3n
+  engine_class: Codex implementation worker
+  not_identity:
+    - GPT-5.6 Sol
+    - human principal
+    - GREEN authority
+    - Open-node authority
+  continuity_source:
+    - repository branch state
+    - this checkpoint
+    - AGENTS.md
+    - GitHub Issue #1
+    - corpus citations
+    - runnable receipts/tests
+
+branch:
+  name: artifact/world-platform-lgp-v0.1
+  main_must_remain_untouched: true
+  observed_tip_before_checkpoint: 367ed53974a4b5289b0b85728cc5949d5b49b363
+
+objective:
+  symbol: LGP
+  working_sentence: World as the human's room. Harness serves the room.
+  human_success:
+    - open one local URL
+    - see a plain Needs You list
+    - understand why each item reached the human
+    - approve or refuse one exact human-class act
+    - see effect verification and receipt
+    - walk away
+
+current_verified_state:
+  needs_you:
+    status: IMPLEMENTED_FIRST_SLICE
+    commit: 70f49a2db699639cd5c9dbe78fef370b7b15e3b6
+    evidence:
+      - loopback GET-only Port /api/state client
+      - pure Needs You composition
+      - /api/needs-you
+      - Needs You is default web home panel
+      - Port exceptions stay observe-only
+      - human gates remain DRAFT_ONLY
+  usn_read_auth:
+    status: IMPLEMENTED_CODE_RUNTIME_BLOCKED_BY_LEGACY_CREDENTIAL
+    commit: 367ed53974a4b5289b0b85728cc5949d5b49b363
+    evidence:
+      - optional local bearer loading for GET-only USN reads
+      - refuses token files with permissions broader than 0600
+      - no token committed
+    runtime_blocker: >
+      Existing ~/.breathline/credentials/KM-1176.token was reported 0600 but rejected by the node as
+      AUTH_INVALID_TOKEN because the runtime expects <principal_id>:<secret>. Lum3n did not reissue or alter it.
+  tests:
+    reported_command: PYTHONPATH=src pytest -q
+    reported_result: 25 passed
+    provenance: Issue #1 Lum3n implementation update
+  port_runtime:
+    state: LIVE_READ_FEED
+    evidence: >
+      Port :8490 produced 6 exception cards and preserved open_node.click=false with
+      BLOCKED ATTACH-TUNNEL and local fingerprint a682845eb6d5.
+  open_node:
+    state: BLOCKED
+    human_action_required_now: false
+    required_future_paint: READY + a682845eb6d5
+  gate_bridge:
+    state: NOT_ACTUATING
+    fence: web/server.py remains read/draft toward USN; no USN POST
+    dependency: real SEE / HumanApprovalGate seam
+  money_path: OFF
+  mesh_federation_live: false
+  remint: false
+
+next_work_queue:
+  - id: LUM3N-01
+    priority: 1
+    state: READY_TO_WORK
+    task: >
+      Make the Needs You slice restart-safe and human-legible under degraded feeds: preserve Port cards when USN read
+      auth is unavailable, clearly label node feed unavailable, and add/verify fixtures for BLOCKED and READY Open-node
+      paints without enabling the click from test data alone.
+    completion_evidence:
+      - exact commit SHA
+      - tests run and result
+      - local URL /api/needs-you or human page evidence
+      - no USN POST path introduced
+  - id: LUM3N-02
+    priority: 2
+    state: BLOCKED_ON_GOVERNED_CREDENTIAL_PATH
+    task: >
+      Discover and document the existing governed node-read credential install/select path. Do not mint, remint,
+      rewrite, or silently migrate KM credentials. If the fix requires KM-class authority, stop and elevate the exact
+      decision instead of acting.
+  - id: LUM3N-03
+    priority: 3
+    state: READY_TO_INSPECT
+    task: >
+      Locate the real SEE / HumanApprovalGate implementation seam and produce a collision-free Gate Bridge binding plan.
+      No generic shell, no browser->USN POST, no actuation until the seam and authority boundary are verified.
+  - id: LUM3N-04
+    priority: 4
+    state: READY_TO_INSPECT
+    task: >
+      Collision-diff WORLD_PLATFORM_LGP_v0.1.md and WORLD_PLATFORM_EXECUTION_PACKET_v0.1.md against sealed corpus /
+      Book<->Code receipts. Label material atoms RESTATED, INFERRED, COLLIDES, UNKNOWN, IMPLEMENTED.
+
+restart_protocol:
+  on_every_start:
+    - checkout artifact/world-platform-lgp-v0.1
+    - read AGENTS.md
+    - read this checkpoint
+    - read newest GitHub Issue #1 comments after the checkpoint's observed state
+    - confirm branch tip and do not reset verified work
+    - choose exactly one highest-priority unblocked work item
+    - work in a bounded change set
+    - run relevant tests
+    - commit evidence before session exit
+    - post concise CODE/TEST/RUNTIME/RECEIPT update to Issue #1
+    - update this checkpoint only when observed state materially changes
+  on_interruption:
+    - do not depend on chat memory
+    - do not restart architecture discovery from zero
+    - inspect git status and latest commits
+    - preserve partially completed work on a named branch/commit if safe
+    - if no durable checkpoint exists, stop before destructive action
+  on_blocker:
+    - label exact blocker
+    - distinguish technical blocker from human-class authority boundary
+    - continue with another unblocked lab task when safe
+    - never convert a blocker into authority expansion
+
+human_class_boundaries:
+  - Open-node
+  - money-path last
+  - remint
+  - mesh LIVE
+  - canon-append
+  - any authority widening
+
+hard_fences:
+  - no new dashboard
+  - no generic shell
+  - no browser to USN POST path
+  - no credential reissue without governed path and authority
+  - no money-path flip
+  - no mesh/federation LIVE
+  - no remint
+  - no main write
+  - no unsealed-to-canon promotion
+
+session_semantics:
+  principle: >
+    Lum3n is disposable; the work state is not. A session may start and stop at any time. Completion means durable
+    code/evidence/checkpoint, not a continuously running model process.
+  desired_agent_behavior: stateless_worker_with_persistent_external_state
+  anti_pattern: long_lived_chat_as_single_source_of_truth
+
+echo: LGP. Echo forward.
