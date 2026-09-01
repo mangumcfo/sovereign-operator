@@ -62,23 +62,29 @@ def _port_card(row: dict) -> dict:
 
 def build(gates: list[dict], port: dict | None, *, node_error: str | None = None,
           port_error: str | None = None) -> dict:
-    """Compose exception cards. Healthy WORKING/DONE Port rows stay below the human boundary."""
+    """Compose the human pile and a separate fleet projection.
+
+    Only matters with an actual human disposition enter ``cards``. Port rows are observations, not
+    approval controls, so exceptional rows remain visible under ``parked`` without paging KM.
+    """
     cards = [_gate_card(x.get("gate") or {}, x.get("dispose") or {}) for x in gates]
     rows = (port or {}).get("rows") or []
-    cards.extend(_port_card(row) for row in rows
-                 if row.get("state") not in {"WORKING", "DONE"} or row.get("owns") == "KM"
-                 or any(row.get(f"blocks_{name}") for name in ("open_node", "money_path", "lgp")))
+    parked = [_port_card(row) for row in rows
+              if row.get("state") not in {"WORKING", "DONE"}
+              and not row.get("blocks_open_node")]
     priority = {"DECISION": 0, "OBLIGATION": 1}
     cards.sort(key=lambda card: (priority.get(card["kind"], 9), card["state"] != "BLOCKED", card["id"]))
+    parked.sort(key=lambda card: (card["state"] != "BLOCKED", card["id"]))
     return {
         "ok": node_error is None or port_error is None,
         "count": len(cards),
         "cards": cards,
+        "parked": parked,
         "feeds": {
             "node": {"ok": node_error is None, "error": node_error},
             "port": {"ok": port_error is None, "error": port_error,
                      "observed_at": (port or {}).get("ts")},
         },
         "kpi": (port or {}).get("kpi"),
-        "note": "Needs You is a read-only exception projection. Approval remains draft-only until the separate Gate Bridge exists.",
+        "note": "Only matters needing your disposition appear in Needs You. Fleet observations are parked below.",
     }

@@ -98,19 +98,23 @@ const DRILLS=[
 const PANELS={
  async needs(m){
    const d=await get("/api/needs-you"), feeds=d.feeds||{}, k=d.kpi||{}, on=k.open_node||{};
-   const feed=(name,x)=>`<span class="${x?.ok?'up':'warn'}">${name} ${x?.ok?'live':'unavailable'}</span>`;
-   const cards=d.cards||[];
-   m.innerHTML=`<div class="card"><h3>Needs You — exceptions and human decisions</h3>
-     <div class="kv">${feed('node',feeds.node)} · ${feed('Port',feeds.port)} · <span class="k">observed</span> ${esc(feeds.port?.observed_at||'—')}</div>
-     ${on.paint?`<div class="prop"><b>Open node</b> <span class="${on.click?'up':'warn'}">${esc(on.state)}</span><div class="note">${esc(on.paint)}</div><div class="note">${esc(on.detail||'')}</div></div>`:''}
-     <div class="note">${esc(d.note||'')}</div></div>
+   const cards=d.cards||[], parked=d.parked||[];
+   const openState=on.click?`READY + ${esc(on.fp||'fingerprint unavailable')}`:'BLOCKED ATTACH-TUNNEL';
+   const rest=!feeds.port?.ok?'PORT_DOWN':(!feeds.node?.ok?'NODE_UNREADABLE':'working normally');
+   m.innerHTML=`<div class="card"><h3>This is your room.</h3>
+     <div class="kv"><b>Needs You: ${cards.length}</b><br>
+       <span class="k">Open node:</span> <span class="${on.click?'up':'warn'}">${openState}</span><br>
+       <span class="k">Everything else:</span> <span class="${rest==='working normally'?'up':'warn'}">${rest}</span>${feeds.port?.ok?' · Port live':''}<br>
+       <span class="k">Observed:</span> ${esc(feeds.port?.observed_at||'not available')}</div>
+     <div class="note">${cards.length?esc(d.note||''):'You have nothing to approve.'}</div></div>
      ${cards.length?cards.map(c=>`<div class="card"><h3>${esc(c.kind)} · ${esc(c.state)} · ${esc(c.source)}</h3>
        <b>${esc(c.what)}</b><div class="note" style="margin-top:6px">Why it rose: ${esc(c.why)}</div>
-       <pre class="run">${esc(JSON.stringify(c.evidence,null,2))}</pre>
        ${c.exact_effect?`<div class="cite">Exact proposed effect</div><div>${esc(c.exact_effect)}</div>`:''}
        ${runBlock("APPROVE — DRAFT ONLY",c.run_approve)}${runBlock("DENY — DRAFT ONLY",c.run_deny)}
        <div class="note">${esc(c.disposition)}</div></div>`).join(''):
-       '<div class="card"><div class="up">✓ Nothing currently crosses the human boundary.</div></div>'}`;
+       ''}
+     ${parked.length?`<div class="card"><h3>Parked / fleet — not asking you</h3>${parked.map(c=>
+       `<div class="prop"><span class="${c.state==='BLOCKED'?'warn':'note'}">${esc(c.state)}</span> · ${esc(c.evidence?.owner||'fleet')}<div class="note">${esc(c.what)}</div></div>`).join('')}</div>`:''}`;
  },
  async apps(m){
    const d=await get("/api/apps"); const list=(d.ok&&d.apps)||[];

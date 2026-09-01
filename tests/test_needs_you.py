@@ -27,10 +27,8 @@ PORT_STATE = {
 
 def test_needs_you_is_exception_only_and_preserves_blocker():
     result = needs_you.build([], PORT_STATE)
-    assert [card["id"] for card in result["cards"]] == ["port:hold:km", "port:hold:aa"]
-    km = result["cards"][0]
-    assert km["evidence"]["blocks"] == ["open_node"]
-    assert km["disposition"] == "OBSERVE_ONLY"
+    assert result["cards"] == []
+    assert [card["id"] for card in result["parked"]] == ["port:hold:aa"]
     assert result["kpi"]["open_node"]["click"] is False
 
 
