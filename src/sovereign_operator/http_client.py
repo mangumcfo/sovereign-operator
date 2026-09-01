@@ -14,7 +14,9 @@ package is imported; no telemetry endpoint exists (F4).
 from __future__ import annotations
 
 import json
+import pathlib
 import re
+import stat
 import urllib.error
 import urllib.request
 
@@ -39,7 +41,16 @@ def usn_get(path: str) -> tuple[int, object | None]:
     returns (status, body) so the tool layer can map 404 → deny-by-default 'OUT'.
     """
     url = _loopback_or_die(config.USN_BASE + path)
-    req = urllib.request.Request(url, method="GET")  # GET-only — no data, no other method, ever
+    headers = {}
+    token_file = pathlib.Path(config.USN_TOKEN_FILE)
+    if token_file.is_file():
+        mode = stat.S_IMODE(token_file.stat().st_mode)
+        if mode & 0o077:
+            raise ValueError(f"refusing broad-permission node credential ({mode:04o}); require 0600")
+        token = token_file.read_text().strip()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(url, headers=headers, method="GET")  # GET-only, authenticated if configured
     try:
         with urllib.request.urlopen(req, timeout=config.USN_TIMEOUT) as r:  # noqa: S310 (loopback-fenced)
             body = r.read().decode()

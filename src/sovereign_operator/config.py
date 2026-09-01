@@ -9,8 +9,15 @@ from __future__ import annotations
 import os
 import pathlib
 
+# --- principal identity (selects a local read credential; never hardcoded into requests) -----------
+PRINCIPAL = os.environ.get("OPERATOR_PRINCIPAL", "operator").strip() or "operator"
+
 # --- where the law lives (read-only, GET-only from here) ------------------------------------------
 USN_BASE = os.environ.get("OPERATOR_USN_URL", "http://127.0.0.1:8421/api/v1").rstrip("/")
+USN_TOKEN_FILE = pathlib.Path(os.environ.get(
+    "OPERATOR_USN_TOKEN_FILE",
+    os.path.expanduser(f"~/.breathline/credentials/{PRINCIPAL}.token"),
+))
 
 # --- the Port fleet membrane (read-only state feed; never an authority surface) -------------------
 PORT_BASE = os.environ.get("OPERATOR_PORT_URL", "http://127.0.0.1:8490").rstrip("/")
@@ -24,9 +31,6 @@ MIND_MODEL = os.environ.get("OPERATOR_MIND_MODEL", "").strip()  # empty = ask th
 HOME = pathlib.Path(os.environ.get("OPERATOR_HOME", os.path.expanduser("~/.sovereign_operator")))
 NOTEBOOK_DB = HOME / "notebook.sqlite3"
 EXPORT_DIR = HOME / "exports"
-
-# --- F5 · multi-principal seam (reserved; v1 is exactly one principal) ------------------------------
-PRINCIPAL = os.environ.get("OPERATOR_PRINCIPAL", "operator").strip() or "operator"
 
 # --- HTTP timeouts (loopback → short) --------------------------------------------------------------
 USN_TIMEOUT = float(os.environ.get("OPERATOR_USN_TIMEOUT", "6"))

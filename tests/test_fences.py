@@ -4,6 +4,9 @@ rows U2/U3/U4/U5/U7 and the deny-by-default + loopback fences; AA runs the live 
 from __future__ import annotations
 
 import pathlib
+import json
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
@@ -72,6 +75,45 @@ def test_loopback_only(monkeypatch):
     from sovereign_operator import config
     monkeypatch.setattr(config, "USN_BASE", "http://10.0.0.5:8421/api/v1")
     with pytest.raises(ValueError):
+        usn_get("/status")
+
+
+def test_usn_get_uses_selected_local_credential(monkeypatch, tmp_path):
+    seen = {}
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            seen["authorization"] = self.headers.get("Authorization")
+            body = json.dumps({"ok": True}).encode()
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    token_file = tmp_path / "principal.token"
+    token_file.write_text("local-test-token\n")
+    token_file.chmod(0o600)
+    from sovereign_operator import config
+    monkeypatch.setattr(config, "USN_BASE", f"http://127.0.0.1:{server.server_address[1]}/api/v1")
+    monkeypatch.setattr(config, "USN_TOKEN_FILE", token_file)
+    try:
+        assert usn_get("/status")[0] == 200
+        assert seen["authorization"] == "Bearer local-test-token"
+    finally:
+        server.shutdown()
+
+
+def test_usn_get_refuses_broad_permission_credential(monkeypatch, tmp_path):
+    token_file = tmp_path / "principal.token"
+    token_file.write_text("do-not-use")
+    token_file.chmod(0o644)
+    from sovereign_operator import config
+    monkeypatch.setattr(config, "USN_TOKEN_FILE", token_file)
+    with pytest.raises(ValueError, match="require 0600"):
         usn_get("/status")
 
 

@@ -33,7 +33,7 @@ cd ~/sovereign-operator
 # open in a browser on the node (loopback):
 #   http://127.0.0.1:8722/
 ```
-Env (defaults shown): `OPERATOR_USN_URL=http://127.0.0.1:8421/api/v1` · `OPERATOR_PORT_URL=http://127.0.0.1:8490` · `OPERATOR_MIND_URL=http://127.0.0.1:11434/v1/chat/completions` · `OPERATOR_WEB_PORT=8722`. Corpus search needs a
+Env (defaults shown): `OPERATOR_USN_URL=http://127.0.0.1:8421/api/v1` · `OPERATOR_PORT_URL=http://127.0.0.1:8490` · `OPERATOR_PRINCIPAL=operator` (selects `~/.breathline/credentials/<principal>.token`, or set `OPERATOR_USN_TOKEN_FILE`) · `OPERATOR_MIND_URL=http://127.0.0.1:11434/v1/chat/completions` · `OPERATOR_WEB_PORT=8722`. Corpus search needs a
 local embed model (`ollama pull nomic-embed-text`).
 
 ## Endpoints (all read/draft)
