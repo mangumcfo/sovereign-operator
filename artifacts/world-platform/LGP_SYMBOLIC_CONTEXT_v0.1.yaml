@@ -1,0 +1,129 @@
+# LGP symbolic context for implementation agents
+# STATUS: PINNED / UNSEALED / OPERATOR CONTEXT
+# Purpose: teach Codex and other implementation agents how to treat LGP as a semantic object.
+# Authority order: sealed S0-S14 corpus > human attestation > model inference.
+
+symbol:
+  glyph: LGP
+  declared_expansion: Lasting Generational Prosperity
+  type: OBJECTIVE_SYMBOL
+  closed_definition: false
+  semantic_object: true
+  functions:
+    - semantic_address
+    - compressed_objective
+    - lineage_anchor
+    - retrieval_key
+    - operational_constraint
+    - generative_seed
+
+principal_attestation:
+  objective: LGP
+  human_day: >
+    Wake up, open one local page, see what needs the human,
+    approve or refuse exact acts, walk away.
+    Family and posterity keep what they create.
+  scope_is_not_financial_wealth_only: true
+  world_platform_direction: >
+    A sovereign integrated world is opt-in and default-deny;
+    capability may scale while authority remains human-gated and locally held.
+  aligned_intelligence_direction: >
+    Aligned Intelligences may reason, build, coordinate, and execute within delegated scope
+    without displacing Human Primacy. Treat this sentence as human direction / working synthesis,
+    not as a sealed-corpus quotation.
+
+corpus_grounding:
+  source_of_truth:
+    - corpus/README.md
+    - corpus/CORPUS_RETRIEVAL_DESIGN_2026-08-14.md
+    - corpus/index/MANIFEST.json
+    - corpus/retrieval.py
+  method: cite_or_refuse
+  retrieval_rule: RETRIEVED_FRAGMENT != WHOLE_OBJECT
+  known_arcs_to_retrieve_before_redefining:
+    - S2: sovereign inference, memory, primacy cockpit, harness
+    - S5: production operating system, exception governance, generational continuity
+    - S6: inter-node sovereignty, collaboration, distributed compute, federation
+    - S7: zero-trust sovereignty, data, workload execution
+    - S8: interface sovereignty, Atrium, generational and federation UX
+    - S9: material sovereignty
+    - S10: sovereign livelihood
+    - S11: mutual protection
+    - S12: generational transfer
+    - S13: sovereign discourse
+    - S14: sovereign peerhood, recognition, delegation, clean exit
+
+provenance_classes:
+  SEALED_CORPUS:
+    meaning: retrieved from the corpus with a chapter/source citation
+    may_be_called_canon: true
+  HUMAN_ATTESTATION:
+    meaning: directly stated or accepted by KM
+    may_be_called_canon: false
+    note: human direction can govern present work without pretending it was previously sealed
+  MODEL_INFERENCE:
+    meaning: a new synthesis or derivation produced by an intelligence
+    may_be_called_canon: false
+  EXTERNAL_EVIDENCE:
+    meaning: independently sourced evidence with provenance
+    may_be_called_canon: false
+  UNKNOWN:
+    meaning: unresolved; preserve the gap
+    fabricate: false
+
+symbolforge_rule:
+  - SYMBOL != METAPHOR BY DEFAULT
+  - SYMBOL != COMPLETE DEFINITION
+  - SYMBOL != MODEL INVENTION
+  - do_not_reduce_LGP_to_money
+  - do_not_treat_current_context_as_whole_lineage
+  - do_not_project_new_inference_backward_into_the_corpus
+
+lgp_working_dimensions:
+  # Working dimensions: use for search/routing, not as an exhaustive definition.
+  - human_primacy
+  - sovereignty
+  - durability
+  - household_and_family_agency
+  - productive_capacity
+  - verifiability
+  - owned_records_and_keys
+  - inheritable_value
+  - generational_continuity
+  - weakest_party_legibility
+  - voluntary_relationships
+  - default_deny
+  - clean_exit
+  - provenance
+  - relationships_and_governance
+  - material_and_digital_capability
+
+operating_test:
+  question: Does this work move the principal and successors toward durable sovereign capacity without silently widening authority?
+  anti_metric: Do not substitute a single financial, engagement, throughput, token, or autonomy metric for LGP.
+
+echo_forward:
+  sequence:
+    - receive_symbol_or_intent
+    - retrieve_relevant_lineage
+    - preserve_provenance
+    - compare_and_reason
+    - derive_new_implications
+    - label_derivation
+    - return_for_human_judgment_when_material
+  failure_modes:
+    MIRROR: repeat prior text without requested transformation
+    CONFABULATION: invent meaning and attribute it backward to LGP or the corpus
+    CAPTURE: optimize another actor's objective while representing it as the principal's
+  target: >
+    Preserve the source, add genuine transformation, expose assumptions and provenance,
+    and return consequential boundaries to the human gate.
+
+codex_instruction:
+  before_material_design: >
+    Query the corpus for the relevant LGP / sovereignty / interface / delegation / gate / receipt homes.
+    If retrieval is unavailable, say so and treat design as unsealed inference.
+  after_material_design: >
+    Report what is RESTATED from corpus, what is INFERRED, what is IMPLEMENTED, and what remains UNKNOWN.
+  implementation_north: >
+    World as the human's room. Harness serves the room. LGP.
