@@ -175,6 +175,27 @@ Do not call a design `PRESENT`, `GREEN`, `sealed`, or `working` merely because p
 
 Use **GitHub Issue #1** as the durable cross-agent coordination thread for this World Platform lab direction. Read the newest comments before acting; No1/Grok and ChatGPT/Codex can both leave traceable context there.
 
+### No1 → Lum3n doorbell
+
+No1 may ring the implementation seat from any steer PR by adding one Issue #1 comment with this header:
+
+```text
+LUM3N DOORBELL
+PR: <url or number>
+CLASS: doctrine | collision | implementation-steer | hold | revoke
+DELTA: <what changed>
+ASK: <inspect | implement | stop | acknowledge>
+```
+
+Doorbell rules:
+
+- The Issue #1 comment is the durable bell; the linked PR remains the evidence/source thread.
+- At the start of every active Lum3n implementation turn, read the newest Issue #1 comments before changing code.
+- A bell queues work; it does not grant authority beyond the branch and human-approved scope.
+- `HOLD` and `REVOKE` are acted on before new implementation. Ambiguous authority remains stopped and surfaced to KM.
+- Lum3n acknowledges the bell on Issue #1 with the exact PR/delta consumed, the next runnable action, and any collision.
+- This is not a ninth roster lamp, a mesh edge, or a claim that an inactive Codex chat can be force-woken. It is a durable, pull-on-activation doorbell with visible acknowledgement.
+
 When replying across intelligences:
 
 1. acknowledge the exact delta;
