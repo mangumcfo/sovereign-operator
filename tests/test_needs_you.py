@@ -32,6 +32,28 @@ def test_needs_you_is_exception_only_and_preserves_blocker():
     assert result["kpi"]["open_node"]["click"] is False
 
 
+def test_open_node_transition_requires_complete_truthful_port_signal():
+    ready = {**PORT_STATE, "kpi": {**PORT_STATE["kpi"], "open_node": {
+        "state": "READY", "click": True, "fp": "a682845eb6d5",
+    }}}
+    result = needs_you.build([], ready)
+    assert result["kpi"]["open_node"] == {
+        "state": "READY", "click": True, "fp": "a682845eb6d5",
+    }
+
+
+@pytest.mark.parametrize("open_node", [
+    {"state": "READY", "click": True, "fp": "wrong-iron"},
+    {"state": "READY", "click": False, "fp": "a682845eb6d5"},
+    {"state": "BLOCKED", "click": True, "fp": "a682845eb6d5"},
+])
+def test_open_node_transition_fails_closed_on_partial_or_conflicting_signal(open_node):
+    port = {**PORT_STATE, "kpi": {**PORT_STATE["kpi"], "open_node": open_node}}
+    result = needs_you.build([], port)
+    assert result["kpi"]["open_node"]["state"] == "BLOCKED"
+    assert result["kpi"]["open_node"]["click"] is False
+
+
 def test_pending_gate_rises_before_port_obligations():
     gate = {"gate": {"req_id": "g1", "request": {"action_class": "port_crossing"},
                      "provenance": {"boundary": "external", "source": "agent"}},

@@ -5,6 +5,28 @@ exceptions into plain human-readable cards with their provenance and exact curre
 """
 from __future__ import annotations
 
+from copy import deepcopy
+
+
+HOUSEHOLD_FP = "a682845eb6d5"
+
+
+def _honest_kpi(port: dict | None) -> dict | None:
+    """Fail closed unless Port's complete Open-node READY signal agrees."""
+    if not port or not isinstance(port.get("kpi"), dict):
+        return None
+    kpi = deepcopy(port["kpi"])
+    open_node = kpi.get("open_node")
+    if not isinstance(open_node, dict):
+        return kpi
+    ready = (open_node.get("state") == "READY"
+             and open_node.get("click") is True
+             and open_node.get("fp") == HOUSEHOLD_FP)
+    if not ready:
+        open_node["state"] = "BLOCKED"
+        open_node["click"] = False
+    return kpi
+
 
 def _gate_card(item: dict, dispose: dict) -> dict:
     request = item.get("request") or {}
@@ -85,6 +107,6 @@ def build(gates: list[dict], port: dict | None, *, node_error: str | None = None
             "port": {"ok": port_error is None, "error": port_error,
                      "observed_at": (port or {}).get("ts")},
         },
-        "kpi": (port or {}).get("kpi"),
+        "kpi": _honest_kpi(port),
         "note": "Only matters needing your disposition appear in Needs You. Fleet observations are parked below.",
     }
