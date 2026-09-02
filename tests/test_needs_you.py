@@ -37,6 +37,19 @@ def test_open_node_transition_requires_complete_truthful_port_signal():
         "state": "READY", "click": True, "fp": "a682845eb6d5",
     }}}
     result = needs_you.build([], ready)
+    assert result["count"] == 1
+    assert result["cards"] == [{
+        "id": "open-node",
+        "source": "Port :8490",
+        "kind": "DECISION",
+        "state": "READY",
+        "what": "OPEN MY NODE",
+        "why": "Port verified this IRON and fingerprint a682845eb6d5.",
+        "evidence": {"fingerprint": "a682845eb6d5"},
+        "exact_effect": "Open the local node ceremony in this browser.",
+        "disposition": "HUMAN_ACTION",
+        "action_url": "http://127.0.0.1:8477/",
+    }]
     assert result["kpi"]["open_node"] == {
         "state": "READY", "click": True, "fp": "a682845eb6d5",
     }
@@ -50,6 +63,8 @@ def test_open_node_transition_requires_complete_truthful_port_signal():
 def test_open_node_transition_fails_closed_on_partial_or_conflicting_signal(open_node):
     port = {**PORT_STATE, "kpi": {**PORT_STATE["kpi"], "open_node": open_node}}
     result = needs_you.build([], port)
+    assert result["count"] == 0
+    assert result["cards"] == []
     assert result["kpi"]["open_node"]["state"] == "BLOCKED"
     assert result["kpi"]["open_node"]["click"] is False
 

@@ -119,6 +119,7 @@ const PANELS={
      ${cards.length?cards.map(c=>`<div class="card"><h3>${esc(c.kind)} · ${esc(c.state)} · ${esc(c.source)}</h3>
        <b>${esc(c.what)}</b><div class="note" style="margin-top:6px">Why it rose: ${esc(c.why)}</div>
        ${c.exact_effect?`<div class="cite">Exact proposed effect</div><div>${esc(c.exact_effect)}</div>`:''}
+       ${c.action_url?`<div style="margin-top:10px"><a class="btn" href="${esc(c.action_url)}">${esc(c.what)}</a></div>`:''}
        ${runBlock("APPROVE — DRAFT ONLY",c.run_approve)}${runBlock("DENY — DRAFT ONLY",c.run_deny)}
        <div class="note">${esc(c.disposition)}</div></div>`).join(''):
        ''}

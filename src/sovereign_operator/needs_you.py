@@ -9,6 +9,7 @@ from copy import deepcopy
 
 
 HOUSEHOLD_FP = "a682845eb6d5"
+LOCAL_NODE_URL = "http://127.0.0.1:8477/"
 
 
 def _honest_kpi(port: dict | None) -> dict | None:
@@ -82,6 +83,24 @@ def _port_card(row: dict) -> dict:
     }
 
 
+def _open_node_card(kpi: dict | None) -> dict | None:
+    open_node = (kpi or {}).get("open_node") or {}
+    if not open_node.get("click"):
+        return None
+    return {
+        "id": "open-node",
+        "source": "Port :8490",
+        "kind": "DECISION",
+        "state": "READY",
+        "what": "OPEN MY NODE",
+        "why": f"Port verified this IRON and fingerprint {HOUSEHOLD_FP}.",
+        "evidence": {"fingerprint": HOUSEHOLD_FP},
+        "exact_effect": "Open the local node ceremony in this browser.",
+        "disposition": "HUMAN_ACTION",
+        "action_url": LOCAL_NODE_URL,
+    }
+
+
 def build(gates: list[dict], port: dict | None, *, node_error: str | None = None,
           port_error: str | None = None) -> dict:
     """Compose the human pile and a separate fleet projection.
@@ -89,7 +108,11 @@ def build(gates: list[dict], port: dict | None, *, node_error: str | None = None
     Only matters with an actual human disposition enter ``cards``. Port rows are observations, not
     approval controls, so exceptional rows remain visible under ``parked`` without paging KM.
     """
+    kpi = _honest_kpi(port)
     cards = [_gate_card(x.get("gate") or {}, x.get("dispose") or {}) for x in gates]
+    open_node_card = _open_node_card(kpi)
+    if open_node_card:
+        cards.append(open_node_card)
     rows = (port or {}).get("rows") or []
     parked = [_port_card(row) for row in rows
               if row.get("state") not in {"WORKING", "DONE"}
@@ -107,6 +130,6 @@ def build(gates: list[dict], port: dict | None, *, node_error: str | None = None
             "port": {"ok": port_error is None, "error": port_error,
                      "observed_at": (port or {}).get("ts")},
         },
-        "kpi": _honest_kpi(port),
+        "kpi": kpi,
         "note": "Only matters needing your disposition appear in Needs You. Fleet observations are parked below.",
     }
