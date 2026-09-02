@@ -73,9 +73,13 @@ current_verified_state:
       The Room reads loopback ERP /api/vocab open=true and /api/status canonical identity, suppresses
       stale OPEN MY NODE paint, and renders NODE OPEN without adding a node POST path.
   gate_bridge:
-    state: NOT_ACTUATING
+    state: B1_B3_IMPLEMENTED_NOT_LIVE
     fence: web/server.py remains read/draft toward USN; no USN POST
-    dependency: real SEE / HumanApprovalGate seam
+    evidence: >
+      Separate loopback server with exactly one allowlisted write route; synthetic=true/money=false
+      envelope; owner proof, expiry, execute-time rehash, atomic nonce/execution-id claim, effect
+      read-back and distinct receipt fields. Refusal branches are fixture-demonstrated.
+    dependency: AA B2/B4-B6 live integration; owner credential provisioning and human-only disposition
   money_path: OFF
   mesh_federation_live: false
   remint: false
