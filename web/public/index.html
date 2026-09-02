@@ -13,8 +13,9 @@
   header .glyph{color:var(--blue);font-weight:700}
   header .sub{color:var(--muted);font-size:12px}
   header .law{margin-left:auto;color:var(--muted);font-size:11px;font-family:var(--mono)}
-  nav{display:flex;gap:2px;padding:8px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-  nav button{background:none;border:0;color:var(--muted);padding:7px 12px;border-radius:6px;cursor:pointer;font:inherit}
+  .shell{display:grid;grid-template-columns:180px minmax(0,1fr);min-height:calc(100vh - 50px)}
+  nav{display:flex;flex-direction:column;gap:2px;padding:14px 10px;border-right:1px solid var(--line);background:#0e1116}
+  nav button{background:none;border:0;color:var(--muted);padding:8px 10px;border-radius:6px;cursor:pointer;font:inherit;text-align:left;width:100%}
   nav button:hover{background:#1b1f27;color:var(--paper)}
   nav button.active{background:rgba(74,134,255,.16);color:var(--paper)}
   main{padding:18px;max-width:960px;margin:0 auto}
@@ -36,6 +37,12 @@
   .miss{color:var(--amber);font-family:var(--mono);font-size:12px}
   .refuse{color:var(--muted);font-family:var(--mono);font-size:12px}
   a{color:var(--blue)}
+  @media(max-width:700px){
+    .shell{grid-template-columns:1fr}
+    nav{position:static;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px 10px}
+    nav button{width:auto;white-space:nowrap;text-align:center}
+    main{padding:14px;width:100%}
+  }
 </style>
 </head>
 <body>
@@ -44,8 +51,10 @@
   <div><b>Operator</b> <span class="sub">read &amp; draft · your node is the law · nothing here executes</span></div>
   <span class="law" id="law">loopback · GET-only to node</span>
 </header>
-<nav id="nav"></nav>
-<main id="main"></main>
+<div class="shell">
+  <nav id="nav" aria-label="Room menu"></nav>
+  <main id="main"></main>
+</div>
 
 <script>
 const NAV = [["needs","Needs You"],["apps","Apps"],["drills","Drills"],["morning","Morning"],["gates","Gates"],["capacity","Capacity"],
