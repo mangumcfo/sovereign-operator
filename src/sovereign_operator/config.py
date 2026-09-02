@@ -22,6 +22,9 @@ USN_TOKEN_FILE = pathlib.Path(os.environ.get(
 # --- the Port fleet membrane (read-only state feed; never an authority surface) -------------------
 PORT_BASE = os.environ.get("OPERATOR_PORT_URL", "http://127.0.0.1:8490").rstrip("/")
 
+# --- local ERP ceremony/runtime truth (GET-only; distinct from the USN operator API) --------------
+ERP_BASE = os.environ.get("OPERATOR_ERP_URL", "http://127.0.0.1:8477").rstrip("/")
+
 # --- the operator's own mind (loopback model; same fence the USN chat uses) ------------------------
 MIND_URL = os.environ.get("OPERATOR_MIND_URL", "http://127.0.0.1:11434/v1/chat/completions")
 MIND_MODEL = os.environ.get("OPERATOR_MIND_MODEL", "").strip()  # empty = ask the node/model to pick

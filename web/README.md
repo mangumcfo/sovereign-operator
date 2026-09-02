@@ -40,3 +40,7 @@ local embed model (`ollama pull nomic-embed-text`).
 
 GET `/api/needs-you` `/api/morning` `/api/status` `/api/gates` `/api/capacity` `/api/receipts` `/api/corpus?q=` ·
 POST (browser→this server only) `/api/chat` `/api/draft/crossing` `/api/draft/storage`. None POST the USN.
+`/api/needs-you` also reconciles the completed Open-node ceremony through GET-only loopback reads of
+`OPERATOR_ERP_URL` (default `http://127.0.0.1:8477`): `/api/vocab` supplies the surface-owned `open`
+state and `/api/status` supplies its canonical public fingerprint. An authoritative OPEN suppresses a
+stale Port click; no secret key material is returned or retained.

@@ -108,11 +108,13 @@ const PANELS={
  async needs(m){
    const d=await get("/api/needs-you"), feeds=d.feeds||{}, k=d.kpi||{}, on=k.open_node||{};
    const cards=d.cards||[], parked=d.parked||[];
-   const openState=on.click?`READY + ${esc(on.fp||'fingerprint unavailable')}`:'BLOCKED ATTACH-TUNNEL';
+   const openState=on.state==='OPEN'
+     ?`NODE OPEN · ${esc(on.display_fp||'')} (display) · enforced against ${esc(on.fp||'fingerprint unavailable')} (canonical)`
+     :(on.click?`READY + ${esc(on.fp||'fingerprint unavailable')}`:'BLOCKED ATTACH-TUNNEL');
    const rest=!feeds.port?.ok?'PORT_DOWN':(!feeds.node?.ok?'NODE_UNREADABLE':'working normally');
    m.innerHTML=`<div class="card"><h3>This is your room.</h3>
      <div class="kv"><b>Needs You: ${cards.length}</b><br>
-       <span class="k">Open node:</span> <span class="${on.click?'up':'warn'}">${openState}</span><br>
+       <span class="k">Open node:</span> <span class="${on.click||on.state==='OPEN'?'up':'warn'}">${openState}</span><br>
        <span class="k">Everything else:</span> <span class="${rest==='working normally'?'up':'warn'}">${rest}</span>${feeds.port?.ok?' · Port live':''}<br>
        <span class="k">Observed:</span> ${esc(feeds.port?.observed_at||'not available')}</div>
      <div class="note">${cards.length?esc(d.note||''):'You have nothing to approve.'}</div></div>

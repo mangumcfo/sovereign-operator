@@ -66,9 +66,12 @@ current_verified_state:
       Port :8490 produced 6 exception cards and preserved open_node.click=false with
       BLOCKED ATTACH-TUNNEL and local fingerprint a682845eb6d5.
   open_node:
-    state: BLOCKED
+    state: OPEN_RECONCILED_READ_ONLY
     human_action_required_now: false
-    required_future_paint: READY + a682845eb6d5
+    canonical_fingerprint: a682845eb6d5ac5b
+    evidence: >
+      The Room reads loopback ERP /api/vocab open=true and /api/status canonical identity, suppresses
+      stale OPEN MY NODE paint, and renders NODE OPEN without adding a node POST path.
   gate_bridge:
     state: NOT_ACTUATING
     fence: web/server.py remains read/draft toward USN; no USN POST

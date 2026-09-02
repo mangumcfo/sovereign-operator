@@ -34,6 +34,7 @@ from sovereign_operator import config, lens, tools, apps, needs_you  # noqa: E40
 from sovereign_operator.cli import SYSTEM, _claim_guard  # noqa: E402
 from sovereign_operator.http_client import UsnUnreachable, mind_complete, mind_up, pick_model  # noqa: E402
 from sovereign_operator.port_client import PortUnreachable, port_state  # noqa: E402
+from sovereign_operator.node_runtime import NodeRuntimeUnreachable, node_runtime  # noqa: E402
 
 PUBLIC = Path(__file__).resolve().parent / "public"
 LOOPBACK = {"127.0.0.1", "localhost", "::1"}
@@ -102,7 +103,13 @@ def ep_needs_you(_q):
         port = port_state()
     except PortUnreachable as exc:
         port_error = f"Port unavailable ({type(exc).__name__})"
-    return needs_you.build(gate_rows, port, node_error=node_error, port_error=port_error)
+    runtime, runtime_error = None, None
+    try:
+        runtime = node_runtime()
+    except NodeRuntimeUnreachable as exc:
+        runtime_error = f"ERP runtime unavailable ({type(exc).__name__})"
+    return needs_you.build(gate_rows, port, node_error=node_error, port_error=port_error,
+                           runtime=runtime, runtime_error=runtime_error)
 
 
 def ep_gates(_q):

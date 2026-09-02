@@ -8,7 +8,8 @@ from __future__ import annotations
 from copy import deepcopy
 
 
-HOUSEHOLD_FP = "a682845eb6d5"
+HOUSEHOLD_FP = "a682845eb6d5ac5b"
+HOUSEHOLD_FP_DISPLAY = HOUSEHOLD_FP[:12]
 LOCAL_NODE_URL = "http://127.0.0.1:8477/"
 
 
@@ -102,15 +103,25 @@ def _open_node_card(kpi: dict | None) -> dict | None:
 
 
 def build(gates: list[dict], port: dict | None, *, node_error: str | None = None,
-          port_error: str | None = None) -> dict:
+          port_error: str | None = None, runtime: dict | None = None,
+          runtime_error: str | None = None) -> dict:
     """Compose the human pile and a separate fleet projection.
 
     Only matters with an actual human disposition enter ``cards``. Port rows are observations, not
     approval controls, so exceptional rows remain visible under ``parked`` without paging KM.
     """
     kpi = _honest_kpi(port)
+    runtime_open = bool(runtime and runtime.get("open") is True
+                        and runtime.get("fingerprint") == HOUSEHOLD_FP)
+    if runtime_open:
+        kpi = deepcopy(kpi) if kpi else {}
+        kpi["open_node"] = {
+            "state": "OPEN", "click": False, "fp": HOUSEHOLD_FP,
+            "display_fp": HOUSEHOLD_FP_DISPLAY,
+            "detail": "The local ERP reports this node is already open.",
+        }
     cards = [_gate_card(x.get("gate") or {}, x.get("dispose") or {}) for x in gates]
-    open_node_card = _open_node_card(kpi)
+    open_node_card = None if runtime_open else _open_node_card(kpi)
     if open_node_card:
         cards.append(open_node_card)
     rows = (port or {}).get("rows") or []
@@ -129,6 +140,9 @@ def build(gates: list[dict], port: dict | None, *, node_error: str | None = None
             "node": {"ok": node_error is None, "error": node_error},
             "port": {"ok": port_error is None, "error": port_error,
                      "observed_at": (port or {}).get("ts")},
+            "runtime": {"ok": runtime_error is None, "error": runtime_error,
+                        "open": runtime_open,
+                        "fingerprint": (runtime or {}).get("fingerprint")},
         },
         "kpi": kpi,
         "note": "Only matters needing your disposition appear in Needs You. Fleet observations are parked below.",
