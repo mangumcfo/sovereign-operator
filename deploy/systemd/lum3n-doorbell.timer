@@ -1,0 +1,12 @@
+[Unit]
+Description=Check the Lum3n doorbell every 30 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+AccuracySec=2s
+Persistent=true
+Unit=lum3n-doorbell.service
+
+[Install]
+WantedBy=timers.target
